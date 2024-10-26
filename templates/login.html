@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+    </head>
+    <body>
+    {%include 'navbar.html'%}
+
+    <form method = "POST" action="">
+        {{form.hidden_tag()}}
+        <div>
+            {{form.email.label}}
+            {{form.email()}}
+        </div>
+        <div>
+            {{form.password.label}}
+            {{form.password()}}
+        </div>
+        <div>
+            {{form.submit()}}
+        </div>
+        <div>
+            <p>Don't have an account?<a href="{{url_for('signup')}}"> Signup</a></p>
+        </div>
+    </form>
+    {% include 'footer.html'%}
+    </body>
+</html>
