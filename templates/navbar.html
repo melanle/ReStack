@@ -17,14 +17,17 @@
 
         {% if 'user_id' in session %}
           <li>
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{% if user_role == 'admin' %}{{ url_for('admin_dashboard') }}
+            {% elif user_role == 'job_recruiter' %}{{ url_for('recruiter_dashboard') }}
+            {% elif user_role == 'job_seeker' %}{{ url_for('job_seeker_dashboard') }}
+            {% endif %}">Dashboard</a>
           </li>
           <li>
             <a href="{{ url_for('logout') }}">Logout</a>
           </li>
         {% else %}
           <li>
-            <a href="{{ url_for('signup') }}">Signup</a>
+            <a href="{{ url_for('signup.select_role') }}">Signup</a>
           </li>
           <li>
             <a href="{{ url_for('login') }}">Login</a>

@@ -10,7 +10,7 @@
     {%include 'navbar.html'%}
     <div class="container">
         <h2>Sign Up as a Job Recruiter</h2>
-        <form method="POST" action="{{ url_for('signup_job_recruiter') }}">
+        <form method="POST" action="{{ url_for('signup.signup_job_recruiter') }}">
             {{ form.hidden_tag() }}
             <div class="form-group">
                 {{ form.organization_name.label }} {{ form.organization_name(size=32, class="form-control") }}
