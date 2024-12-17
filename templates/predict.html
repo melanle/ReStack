@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Scoring</title>
+</head>
+<body>
+    {%include 'navbar.html'%}
+    <h1>Resume Scoring System</h1>
+
+    <form action="/predict" method="POST" enctype="multipart/form-data">
+        <label for="job_description">Job Description:</label><br>
+        <textarea id="job_description" name="job_description" rows="6" cols="50" required></textarea><br><br>
+
+        <label for="resume">Upload Resume (PDF/DOCX):</label><br>
+        <input type="file" id="resume" name="resume" accept=".pdf,.docx" required><br><br>
+
+        <button type="submit">Score Resume</button>
+    </form>
+
+    <!-- Display error message if there's an error -->
+    {% if error %}
+        <p style="color: red;">Error: {{ error }}</p>
+    {% endif %}
+
+    <!-- Display score if it's calculated -->
+    {% if score %}
+        <h2>Your Resume Score: {{ score }}</h2>
+    {% endif %}
+    {%include 'footer.html'%}
+</body>
+</html>

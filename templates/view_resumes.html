@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Resumes for {{ job.job_title }}</title>
+    <style>
+        .badge-green { background-color: green; color: white; }
+        .badge-orange { background-color: orange; color: white; }
+        .badge-red { background-color: red; color: white; }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container mt-4">
+        <div class="d-flex mb-3">
+            <h2>Resumes for {{ job.job_title }}</h2>
+            <a href="{{ url_for('dashboard.recruiter_dashboard') }}" class="btn btn-secondary ml-auto">Back</a>
+        </div>
+
+        <!-- Form to upload resumes -->
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="d-flex mb-3">
+                <label for="formFileMultiple" class="form-label mr-2">Add Resumes</label>
+                <input class="form-control mr-2" type="file" id="formFileMultiple" name="resumes" multiple required>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+
+        <!-- Display flash messages -->
+        <div id="flashMessages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert alert-{{ messages[0][0] }}">
+                        {{ messages[0][1] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Table to display uploaded resumes and scores -->
+        <div id="results-section">
+            <h3>Uploaded Resumes</h3>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Candidate Name</th>
+                        <th>Score (%)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="resumeTableBody">
+                    {% for resume in resumes %}
+                        <tr id="resumeRow-{{ resume.id }}">
+                            <td>{{ resume.resume_name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if resume.score >= 80 %}
+                                        badge-green
+                                    {% elif resume.score >= 50 %}
+                                        badge-orange
+                                    {% else %}
+                                        badge-red
+                                    {% endif %}
+                                ">
+                                    {{ resume.score }}%
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('predictor.viewres', resume_id=resume.id) }}" class="btn btn-sm btn-info" target="_blank">View</a>
+                                <form method="POST" action="{{ url_for('predictor.delete_resume', resume_id=resume.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Handle resume upload
+            $('#uploadForm').on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: "{{ url_for('predictor.view_resumes', job_id=job.id) }}",
+                    method: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.message) {
+                            // Display flash message
+                            $('#flashMessages').html('<div class="alert alert-' + (response.status === 'success' ? 'success' : 'danger') + '">' + response.message + '</div>');
+                        }
+
+                        if (response.status === 'success') {
+                            // Dynamically update the resume table body with new rows
+                            $('#resumeTableBody').html(response.rows);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#flashMessages').html('<div class="alert alert-danger">Error uploading resumes: ' + error + '</div>');
+                    }
+                });
+            });
+
+            // Handle dynamic deletion of resumes
+            $(document).on('submit', 'form[action*="delete_resume"]', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var rowId = form.closest('tr').attr('id');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: form.attr('method'),
+                    success: function () {
+                        // Remove the corresponding row from the table
+                        $('#' + rowId).remove();
+                        $('#flashMessages').html('<div class="alert alert-success">Resume deleted successfully!</div>');
+                    },
+                    error: function (xhr, status, error) {
+                        $('#flashMessages').html('<div class="alert alert-danger">Error deleting resume: ' + error + '</div>');
+                    }
+                });
+            });
+        });
+    </script>
+
+    {% include 'footer.html' %}
+</body>
+</html>

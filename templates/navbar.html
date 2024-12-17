@@ -17,9 +17,9 @@
 
         {% if 'user_id' in session %}
           <li>
-            <a href="{% if user_role == 'admin' %}{{ url_for('admin_dashboard') }}
-            {% elif user_role == 'job_recruiter' %}{{ url_for('recruiter_dashboard') }}
-            {% elif user_role == 'job_seeker' %}{{ url_for('job_seeker_dashboard') }}
+            <a href="{% if user_role == 'admin' %}{{ url_for('dashboard.admin_dashboard') }}
+            {% elif user_role == 'job_recruiter' %}{{ url_for('dashboard.recruiter_dashboard') }}
+            {% elif user_role == 'job_seeker' %}{{ url_for('dashboard.job_seeker_dashboard') }}
             {% endif %}">Dashboard</a>
           </li>
           <li>

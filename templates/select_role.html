@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Role</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container">
-        {%include 'navbar.html'%}
+    {%include 'navbar.html'%}
+    <div class="text-center">
         <h2>Select Your Role</h2>
         <form action="{{ url_for('signup.signup_job_seeker') }}" method="GET" style="display: inline;">
             <button type="submit" class="btn btn-primary">Job Seeker</button>
@@ -16,7 +16,7 @@
         <form action="{{ url_for('signup.signup_job_recruiter') }}" method="GET" style="display: inline;">
             <button type="submit" class="btn btn-secondary">Job Recruiter</button>
         </form>
-        {%include 'footer.html'%}
     </div>
+    {%include 'footer.html'%}
 </body>
 </html>

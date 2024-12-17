@@ -1,3 +1,13 @@
-{% include 'navbar.html'%}
-<h1>Welcome {{session['username']}}</h1>
-{%include 'footer.html'%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{session['username']}}'s dashboard</title>
+</head>
+<body>
+    {% include 'navbar.html'%}
+    <h1>Welcome {{session['username']}}</h1>
+    {%include 'footer.html'%}
+</body>
+</html>
