@@ -68,18 +68,6 @@ def about():
 #Main admin, job seeker and job recruiter dashboards to see the data
 app.register_blueprint(dashboard)
 
-
-# @app.route('/view_resumes/<int:job_id>', methods=['GET'])
-# def view_resumes(job_id):
-#     # Fetch the job profile from the database
-#     job = JobProfile.query.get_or_404(job_id)  # Retrieve the job profile object
-    
-#     # Fetch resumes for the job (you can add logic to get resumes here)
-#     resumes = []  # Replace this with the actual logic to fetch resumes
-    
-#     # Pass the job and resumes to the template
-#     return render_template('view_resumes.html', job=job, resumes=resumes)
-
 app.register_blueprint(predictor)
 
 @app.route('/logout')

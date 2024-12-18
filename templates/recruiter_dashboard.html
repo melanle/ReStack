@@ -33,14 +33,9 @@
                 <tr>
                     <td>{{ job.job_title }}</td>
                     <td>{{ job.job_description }}</td>
-                    <td>{{ job.resumes | length }} 
-                        <!-- uncomment the bottom code once incorporated resumes db, ml algo for resume score. -->
-                        <!-- {% if resume|length == 0 %}
-                        {% else %}
-                        <a href="{{ url_for('view_resumes', job_id=job.id) }}" class="btn btn-primary">View Resumes</a>
-                        {% endif %} -->
+                    <td>{{ job.resumes | length }}
                         <a href="{{ url_for('predictor.view_resumes', job_id=job.id) }}" class="btn btn-primary">View Resumes</a>
-                    </td> <!-- Assuming 'resumes' is related to JobProfile -->
+                    </td>
                     <td>
                         <!-- Button to open modal for editing job profile -->
                         <button type="button" class="btn btn-warning btn-sm" onclick="openEditModal('{{ job.id }}', '{{ job.job_title }}', '{{ job.job_description }}')">Edit</button>

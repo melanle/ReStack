@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Job Profiles</title>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container mt-4">
+        <h1>Job Profiles Created by {{ recruiter.username }}</h1>
+        {% if job_profiles %}
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Description</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in job_profiles %}
+                        <tr>
+                            <td>{{ profile.job_title }}</td>
+                            <td>{{ profile.job_description }}</td>
+                            <td>{{ profile.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No job profiles found for this recruiter.</p>
+        {% endif %}
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

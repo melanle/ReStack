@@ -7,10 +7,27 @@ dashboard = Blueprint('dashboard', __name__)
 def admin_dashboard():
     # Check if user is logged in and has an admin role
     if 'user_id' in session and session.get('user_role') == 'admin':
-        return render_template('admin_dashboard.html')
+        job_recruiters = User.query.filter_by(role="job_recruiter").all()
+        job_seekers = User.query.filter_by(role="job_seeker").all()
+        return render_template('admin_dashboard.html', job_recruiters = job_recruiters, job_seekers = job_seekers)
     else:
         flash('You do not have permission to access this page.', 'warning')
         return redirect(url_for('login'))
+
+@dashboard.route('/job_profiles/<string:username>')
+def view_job_profile(username):
+    if session.get('user_role') == 'admin':
+        recruiter = User.query.filter_by(username=username, role='job_recruiter').first()
+        if recruiter:
+            job_profiles = JobProfile.query.filter_by(recruiter_id=recruiter.id).all()
+            return render_template('job_profiles.html', recruiter=recruiter, job_profiles=job_profiles)
+        else:
+            flash('No job recruiter found with the provided username.', 'danger')
+            return redirect(url_for('dashboard.admin_dashboard'))
+    else:
+        flash('Please login with Admin Credentials in order to view this page', 'warning')
+        return redirect(url_for('login'))
+
 
 @dashboard.route('/job_seeker_dashboard')
 def job_seeker_dashboard():
@@ -60,7 +77,6 @@ def edit_job_profile(job_id):
             db.session.commit()
             flash('Job profile updated.', 'success')
             return redirect(url_for('dashboard.recruiter_dashboard'))
-        return render_template('edit_job.html', job_profile=job_profile)
     return redirect(url_for('login'))
 
 #Deleting the Job Profile

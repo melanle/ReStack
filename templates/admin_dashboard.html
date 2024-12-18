@@ -4,11 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <title>Document</title>
+    <title>Admin Dashboard</title>
 </head>
 <body>
-    {%include 'navbar.html'%}
-    <h1>Welcome {{session['username']}}</h1>
-    {%include 'footer.html'%}
+    {% include 'navbar.html' %}
+    <div class="container mt-4">
+        <h1>Welcome, {{ session['username'] }}</h1>
+        <h2>Registered Job Recruiter Accounts:</h2>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Job Profiles Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in job_recruiters %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{user.job_profiles | length}}
+                            <a href="{{ url_for('dashboard.view_job_profile', username=user.username) }}" class="btn btn-primary">View Job Profiles</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+        <h2>Registered Job Seekers:</h2>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in job_seekers %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'footer.html' %}
 </body>
 </html>
