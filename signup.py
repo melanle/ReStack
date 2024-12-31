@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
-from forms import RoleSelectForm, JobSeekerSignUpForm, JobRecruiterSignUpForm
+from forms import RoleSelectForm, JobSeekerSignUpForm, RecruiterSignUpForm
 from models import db, User
 from flask_bcrypt import Bcrypt
 
@@ -31,7 +31,7 @@ def signup_job_seeker():
 
 @signup.route('/signup/job_recruiter', methods=['GET', 'POST'])
 def signup_job_recruiter():
-    form = JobRecruiterSignUpForm()
+    form = RecruiterSignUpForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.organization_name.data, email=form.email.data, password=hashed_password, role='job_recruiter')

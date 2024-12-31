@@ -37,6 +37,27 @@ def job_seeker_dashboard():
         flash('Please login as a Job Seeker to access the dashboard', 'warning')
         return redirect(url_for('login'))
 
+
+@dashboard.route('/jobs', methods=['GET', 'POST'])
+def jobs():
+    search_query = request.args.get('q', '')  # Get the search query from the URL parameters
+    query = db.session.query(
+        JobProfile.job_title,
+        JobProfile.job_description,
+        JobProfile.created_at,
+        User.username.label("recruiter_name")
+    ).join(User, JobProfile.recruiter_id == User.id)
+    
+    # Filter the job profiles if a search query is provided
+    if search_query:
+        query = query.filter(
+            JobProfile.job_title.ilike(f"%{search_query}%") | 
+            JobProfile.job_description.ilike(f"%{search_query}%")
+        )
+    
+    job_profiles = query.all()
+    return render_template('jobs.html', jobs=job_profiles, search_query=search_query)
+
     
 @dashboard.route('/recruiter_dashboard')
 def recruiter_dashboard():

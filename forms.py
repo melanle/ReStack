@@ -13,14 +13,12 @@ class JobSeekerSignUpForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
-
-class JobRecruiterSignUpForm(FlaskForm):
+class RecruiterSignUpForm(FlaskForm):
     organization_name = StringField('Organization Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
-
 
 
 class LoginForm(FlaskForm):

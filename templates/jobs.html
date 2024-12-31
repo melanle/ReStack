@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Jobs</title>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <h2 class="text-center mt-4">View Available Jobs</h2>
+    <div class="container text-center mb-4">
+        <form method="GET" action="{{ url_for('dashboard.jobs') }}" class="input-group w-50 mx-auto">
+            <input 
+                type="search" 
+                name="q" 
+                class="form-control" 
+                placeholder="Search Jobs" 
+                aria-label="Search" 
+                value="{{ search_query }}">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+    <div class="container mt-4">
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Job Title</th>
+                    <th>Description</th>
+                    <th>Posted By</th>
+                    <th>Created At</th>
+                    <th>Apply</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>{{ job.job_title }}</td>
+                    <td>{{ job.job_description }}</td>
+                    <td>{{ job.recruiter_name }}</td>
+                    <td>{{ job.created_at.strftime('%B %d, %Y') }}</td>
+                    <td><a href="#" class="btn btn-success btn-sm">Apply</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

@@ -6,25 +6,14 @@ from forms import LoginForm
 from signup import signup 
 from dashboard import dashboard
 from predictor import predictor
-import os
 
-app = Flask (__name__)
+app = Flask(__name__)
 app.config['SECRET_KEY'] = 'FDKJF224EWK'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:pass%40123@localhost:5432/flask_auth_db'
 
 bcrypt = Bcrypt(app)
 db.init_app(app)
 migrate = Migrate(app, db)
-
-with app.app_context(): 
-    #db.create_all()
-    # Check if the admin user already exists
-    if not User.query.filter_by(email='admin@restack.com').first():
-        hashed_password = bcrypt.generate_password_hash('admin').decode('utf-8')  # Hash the password
-        admin_user = User(username='admin', email='admin@restack.com', password=hashed_password, is_admin=True, role='admin')  # Set the role as 'admin'
-        db.session.add(admin_user)
-        db.session.commit()
-
 
 app.register_blueprint(signup)  # Register the signup blueprint
 
@@ -65,7 +54,140 @@ def login():
 def about():
     return render_template('about.html')
 
-#Main admin, job seeker and job recruiter dashboards to see the data
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if 'user_id' in session:
+        # Fetch the logged-in user from the database
+        user = User.query.get(session['user_id'])
+        if not user:
+            flash("User not found.", "danger")
+            return redirect(url_for('login'))
+
+        # Flag to toggle edit mode
+        edit_mode = request.args.get('edit', 'false') == 'true'
+
+        # Flag to toggle password change mode
+        change_password = request.args.get('changePassword', 'false') == 'true'
+
+        # Flag to toggle security question change mode
+        change_security = request.args.get('securityQues', 'false') == 'true'
+
+        if request.method == 'POST':
+            if change_password:
+                # Handle password change
+                current_password = request.form.get('current_password')
+                new_password = request.form.get('new_password')
+                confirm_password = request.form.get('confirm_password')
+
+                # Validate current password using bcrypt's check_password_hash
+                if not bcrypt.check_password_hash(user.password, current_password):
+                    flash("Current password is incorrect.", "danger")
+                    return redirect(url_for('settings', changePassword='true'))
+
+                # Check if new passwords match
+                if new_password != confirm_password:
+                    flash("New passwords do not match.", "danger")
+                    return redirect(url_for('settings', changePassword='true'))
+
+                # Update password (hash the new password before saving)
+                user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                db.session.commit()
+
+                flash("Password updated successfully!", "success")
+                return redirect(url_for('settings'))
+
+            elif change_security:
+                # Handle security question update
+                security_question = request.form.get('security_question')
+                security_answer = request.form.get('security_answer')
+
+                # Update security question and answer
+                user.security_question = security_question
+                user.security_answer = security_answer
+
+                db.session.commit()
+
+                flash("Security question updated successfully!", "success")
+                return redirect(url_for('settings'))
+
+            else:
+                # Handle general settings update
+                name = request.form.get('name')
+                email = request.form.get('email')
+                phone = request.form.get('phone')
+
+                # Update user details
+                user.username = name
+                user.email = email
+                user.phone = phone  # Assuming you added a phone field in the User model
+
+                # Commit changes to the database
+                db.session.commit()
+
+                flash("Details updated successfully!", "success")
+                return redirect(url_for('settings'))
+
+        # Pass the user data and flags to the template
+        return render_template('settings.html', user_info=user, edit_mode=edit_mode, changePassword=change_password, change_security=change_security)
+
+    flash("You must be logged in to access this page.", "danger")
+    return redirect(url_for('login'))
+
+@app.route('/resetpassword', methods=['GET', 'POST'])
+def resetpassword():
+    user = None
+    reset_password_mode = False
+    security_check_mode = False
+
+    if request.method == 'POST':
+        # Check which form was submitted
+        if 'username_email' in request.form:
+            username_email = request.form['username_email']
+            user = User.query.filter((User.username == username_email) | (User.email == username_email)).first()
+
+            if not user:
+                flash("Invalid user. Please try again.", 'danger')
+                return redirect(url_for('resetpassword'))  # Redirect to the same page
+
+            flash(f"Security Question: {user.security_question}", 'info')
+            return render_template('resetpassword.html', user=user, security_check_mode=True)
+
+        elif 'security_answer' in request.form:
+            user_id = request.form['user_id']
+            security_answer = request.form['security_answer']
+            user = User.query.get(user_id)
+
+            if not user or user.security_answer.lower() != security_answer.lower():
+                flash("Incorrect answer to the security question. Please try again.", 'danger')
+                return redirect(url_for('resetpassword'))
+
+            flash("Security answer verified. Please enter your new password.", 'success')
+            return render_template('resetpassword.html', user=user, reset_password_mode=True)
+
+        elif 'new_password' in request.form:
+            user_id = request.form['user_id']
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+
+            if new_password != confirm_password:
+                flash("Passwords do not match. Please try again.", 'danger')
+                return redirect(url_for('resetpassword'))
+
+            user = User.query.get(user_id)
+            if user:
+                user.password = new_password  # Hash password in production
+                db.session.commit()
+                flash("Password reset successful. You can now log in.", 'success')
+                return redirect(url_for('login'))
+
+    return render_template('resetpassword.html', user=user, reset_password_mode=reset_password_mode, security_check_mode=security_check_mode)
+
+
+
+
+
+# Main admin, job seeker and job recruiter dashboards to see the data
 app.register_blueprint(dashboard)
 
 app.register_blueprint(predictor)

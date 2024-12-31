@@ -3,11 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <title>{{session['username']}}'s dashboard</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin-top: 20px;
+            color: #343a40;
+        }
+        .search-container {
+            margin: 20px 0;
+        }
+        .table {
+            margin-top: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .thead-dark th {
+            background-color: #343a40;
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
     {% include 'navbar.html'%}
-    <h1>Welcome {{session['username']}}</h1>
+    <h1 class="text-center">Welcome {{session['username']}}</h1>
+    <div class="container">
+        <h2>Your Applications:</h2>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Job Title</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody class="thead-light"> 
+                <!-- Add logic for viewing the jobs applied to -->
+                <tr>
+                    <td>Hello</td>
+                    <td>fwfiej</td>
+                    <td>EHFEO</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     {%include 'footer.html'%}
 </body>
 </html>
