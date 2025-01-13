@@ -1,5 +1,5 @@
-from flask import Flask, render_template, flash, url_for, redirect, session, request, jsonify
-from models import db, User, JobProfile
+from flask import Flask, render_template, flash, url_for, redirect, session, request
+from models import db, User
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from forms import LoginForm
@@ -134,6 +134,7 @@ def settings():
     flash("You must be logged in to access this page.", "danger")
     return redirect(url_for('login'))
 
+
 @app.route('/resetpassword', methods=['GET', 'POST'])
 def resetpassword():
     user = None
@@ -176,15 +177,14 @@ def resetpassword():
 
             user = User.query.get(user_id)
             if user:
-                user.password = new_password  # Hash password in production
+                # Hash the new password
+                hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                user.password = hashed_password
                 db.session.commit()
                 flash("Password reset successful. You can now log in.", 'success')
                 return redirect(url_for('login'))
 
     return render_template('resetpassword.html', user=user, reset_password_mode=reset_password_mode, security_check_mode=security_check_mode)
-
-
-
 
 
 # Main admin, job seeker and job recruiter dashboards to see the data
