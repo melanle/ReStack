@@ -31,7 +31,7 @@
     </style>
 </head>
 <body>
-    {% include 'navbar.html'%}
+    {% include 'navbar.html' %}
     <h1 class="text-center">Welcome {{session['username']}}</h1>
     <div class="container">
         <h2>Your Applications:</h2>
@@ -40,16 +40,17 @@
                 <tr>
                     <th>Job Title</th>
                     <th>Description</th>
-                    <th>Status</th>
+                    <th>Resume</th>
                 </tr>
             </thead>
-            <tbody class="thead-light"> 
-                <!-- Add logic for viewing the jobs applied to -->
+            <tbody class="thead-light">
+                {% for application in applications %}
                 <tr>
-                    <td>Hello</td>
-                    <td>fwfiej</td>
-                    <td>EHFEO</td>
+                    <td>{{ application.job_title }}</td>
+                    <td>{{ application.job_description }}</td>
+                    <td><a href="{{ application.resume_path }}" target="_blank">{{ application.resume_name }}</a></td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

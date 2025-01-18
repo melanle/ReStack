@@ -43,11 +43,14 @@ class ResumeResults(db.Model):
     score = db.Column(db.Float, nullable=False)  # Store score as a float
     resume_path = db.Column(db.String(255), nullable=False)  # Path to the resume file
     job_profile_id = db.Column(db.Integer, db.ForeignKey('job_profiles.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with the JobProfile model
     job_profile = db.relationship('JobProfile', back_populates='resumes')
+    user = db.relationship('User', backref='resumes')  # Add this line
 
     def __repr__(self):
         return f"<ResumeResults {self.resume_name}, {self.score}>"
+
     

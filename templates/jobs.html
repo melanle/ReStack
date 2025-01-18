@@ -41,7 +41,7 @@
                     <td>{{ job.job_description }}</td>
                     <td>{{ job.recruiter_name }}</td>
                     <td>{{ job.created_at.strftime('%B %d, %Y') }}</td>
-                    <td><a href="#" class="btn btn-success btn-sm">Apply</a></td>
+                    <td><a href="{{ url_for('dashboard.apply', job_id=job.id) }}" class="btn btn-success btn-sm">Apply</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
