@@ -1,6 +1,6 @@
 .footer {
-    background-color: #333;
-    color: white;
+    background-color: #005f73;
+    color: #e0f7fa;
     padding: 1rem 2rem;
     text-align: center;
 }
@@ -26,12 +26,12 @@
 }
 
 .footer-links a {
-    color: white;
+    color: #e0f7fa;
     text-decoration: none;
     font-size: 0.9rem;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease-in-out;
 }
 
 .footer-links a:hover {
-    color: #ddd;
+    color: #005f73;
 }

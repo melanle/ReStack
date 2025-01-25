@@ -3,7 +3,7 @@ Flask_wtf
 flask_sqlalchemy
 flask_bcrypt
 email_validator
-spacy
 python-docx
 google.generativeai
 PyPDF2
+markdown

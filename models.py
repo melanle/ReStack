@@ -53,4 +53,15 @@ class ResumeResults(db.Model):
     def __repr__(self):
         return f"<ResumeResults {self.resume_name}, {self.score}>"
 
-    
+# Job Applications Model
+class JobApplication(db.Model):
+    __tablename__ = 'job_applications'
+    id = db.Column(db.Integer, primary_key=True)
+    job_profile_id = db.Column(db.Integer, db.ForeignKey('job_profiles.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    applied_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='Pending')
+
+    # Relationships
+    job_profile = db.relationship('JobProfile', backref='job_applications')
+    user = db.relationship('User', backref='job_applications')

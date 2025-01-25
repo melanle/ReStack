@@ -28,11 +28,19 @@
             background-color: #343a40;
             color: #ffffff;
         }
+
+        .insights-link {
+            margin: 20px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     {% include 'navbar.html' %}
     <h1 class="text-center">Welcome {{session['username']}}</h1>
+    <div class="insights-link">
+        <a href="{{ url_for('predictor.predict') }}" class="btn btn-info">Get Insights on Your Resume</a>
+    </div>
     <div class="container">
         <h2>Your Applications:</h2>
         <table class="table table-striped">
@@ -41,6 +49,8 @@
                     <th>Job Title</th>
                     <th>Description</th>
                     <th>Resume</th>
+                    <th>Recruiter</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody class="thead-light">
@@ -48,7 +58,9 @@
                 <tr>
                     <td>{{ application.job_title }}</td>
                     <td>{{ application.job_description }}</td>
-                    <td><a href="{{ application.resume_path }}" target="_blank">{{ application.resume_name }}</a></td>
+                    <td><a href="{{ url_for('predictor.viewres', resume_id=application.resume_id) }}" target="_blank" class="btn btn-primary">View Resume</a></td>
+                    <td>{{ application.recruiter_name }}</td>
+                    <td>{{ application.status }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

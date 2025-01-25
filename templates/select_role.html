@@ -5,18 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Role</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            margin-top: 50px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 50px auto;
+        }
+
+        h2 {
+            color: #005f73;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .role-description {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 8px;
+        }
+
+        .btn-primary {
+            background-color: #005f73;
+            border-color: #005f73;
+        }
+
+        .btn-primary:hover {
+            background-color: #01252c;
+            border-color: #01252c;
+        }
+
+        .btn-secondary {
+            background-color: #e3e3e3;
+            border-color: #e3e3e3;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #b0b0b0;
+            border-color: #b0b0b0;
+        }
+
+        .form-group {
+            margin-top: 20px;
+        }
+
+        .text-center p {
+            margin-top: 30px;
+        }
+
+        .text-center a {
+            color: #005f73;
+            text-decoration: none;
+        }
+
+        .text-center a:hover {
+            text-decoration: underline;
+            color: #01252c;
+        }
+    </style>
 </head>
 <body>
-    {%include 'navbar.html'%}
-    <div class="text-center">
-        <h2>Select Your Role</h2>
-        <form action="{{ url_for('signup.signup_job_seeker') }}" method="GET" style="display: inline;">
-            <button type="submit" class="btn btn-primary">Job Seeker</button>
-        </form>
-        <form action="{{ url_for('signup.signup_job_recruiter') }}" method="GET" style="display: inline;">
-            <button type="submit" class="btn btn-secondary">Job Recruiter</button>
-        </form>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h2 class="text-center">Who are you?</h2>
+        <p class="role-description text-center">Are you a job seeker or a job recruiter? Please choose from the below options:</p>
+        <div class="text-center">
+            <form action="{{ url_for('signup.signup_job_seeker') }}" method="GET" style="display: inline-block; width: 100%;">
+                <button type="submit" class="btn btn-primary">Job Seeker</button>
+            </form>
+            <form action="{{ url_for('signup.signup_job_recruiter') }}" method="GET" style="display: inline-block; width: 100%; margin-top: 15px;">
+                <button type="submit" class="btn btn-secondary">Job Recruiter</button>
+            </form>
+        </div>
     </div>
-    {%include 'footer.html'%}
+    {% include 'footer.html' %}
 </body>
 </html>

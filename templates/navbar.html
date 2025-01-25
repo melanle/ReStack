@@ -1,54 +1,58 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title></title>
-    <link rel="stylesheet" href="{{url_for('static', filename='navbar.css')}}">
-  </head>
-  <body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
     <nav class="navbar">
-      <a href="{{ url_for('home') }}" class="nav-logo">ReStack</a>
-      <ul class="nav-links">
-      {%if 'user_id' in session and user_role == 'job_seeker'%}
-        <li>
-          <a href="{{ url_for('dashboard.jobs')}}">Jobs</a>
-        </li>
-      {%endif%}
-        <li>
-          <a href="{{ url_for('home') }}">Home</a>
-        </li>
-        <li>
-          <a href="{{ url_for('about') }}">About</a>
-        </li>
-        <li>
-          <a href="{{ url_for('settings')}}">Settings</a>
-        </li>
+        <a href="{{ url_for('home') }}" class="nav-logo">ReStack</a>
+        <ul class="nav-links">
+            {% if 'user_id' in session and user_role == 'job_seeker' %}
+            <li>
+                <a href="{{ url_for('dashboard.jobs') }}"><i class="fas fa-briefcase"></i> Jobs</a>
+            </li>
+            {% endif %}
+            <li>
+                <a href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li>
+                <a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> About</a>
+            </li>
+            <li>
+                <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+            </li>
 
-        {% if 'user_id' in session %}
-          <li>
-            <a href="{% if user_role == 'admin' %}{{ url_for('dashboard.admin_dashboard') }}
-            {% elif user_role == 'job_recruiter' %}{{ url_for('dashboard.recruiter_dashboard') }}
-            {% elif user_role == 'job_seeker' %}{{ url_for('dashboard.job_seeker_dashboard') }}
-            {% endif %}">Dashboard</a>
-          </li>
-          <li>
-            <a href="{{ url_for('logout') }}">Logout</a>
-          </li>
-        {% else %}
-          <li>
-            <a href="{{ url_for('signup.select_role') }}">Signup</a>
-          </li>
-          <li>
-            <a href="{{ url_for('login') }}">Login</a>
-          </li>
-        {% endif %}
-      </ul>
+            {% if 'user_id' in session %}
+            <li>
+                <a href="{% if user_role == 'admin' %}{{ url_for('dashboard.admin_dashboard') }}
+                {% elif user_role == 'job_recruiter' %}{{ url_for('dashboard.recruiter_dashboard') }}
+                {% elif user_role == 'job_seeker' %}{{ url_for('dashboard.job_seeker_dashboard') }}
+                {% endif %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li>
+                <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </li>
+            {% else %}
+            <li>
+                <a href="{{ url_for('signup.select_role') }}"><i class="fas fa-user-plus"></i> Signup</a>
+            </li>
+            <li>
+                <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            </li>
+            {% endif %}
+        </ul>
     </nav>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
     {% endwith %}
-  </body>
+</body>
 </html>

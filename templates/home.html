@@ -1,11 +1,73 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title></title>
-    </head>
-    <body>
-        {% include 'navbar.html'%}
-        <h1>This is our home page!</h1>
-        {% include 'footer.html'%}
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <title>Home - {{ session['username'] }}</title>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="display-4">Welcome to Restack</h1>
+            <p class="lead">Connecting Talent with Opportunities</p>
+            <a href="#features" class="btn">Learn More</a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container content-section" id="features">
+        <h2 class="my-5 text-center">Our Features</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon"><i class="fas fa-briefcase"></i></div>
+                    <h3>Job Listings</h3>
+                    <p>Explore thousands of job listings from top companies.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon"><i class="fas fa-tasks"></i></div>
+                    <h3>Applicant Tracking</h3>
+                    <p>Keep track of your job applications effortlessly.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon"><i class="fas fa-file-alt"></i></div>
+                    <h3>Resume Builder</h3>
+                    <p>Get personalized recommendations to improve your resume.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon"><i class="fas fa-robot"></i></div>
+                    <h3>Automated Screening</h3>
+                    <p>Screen and score resumes automatically to find the best candidates.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Resume Insights</h3>
+                    <p>Get detailed insights and recommendations to improve your resume.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+
+    <!-- Add Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
 </html>

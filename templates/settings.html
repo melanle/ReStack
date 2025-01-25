@@ -4,88 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/settings.css') }}">
     <title>Settings</title>
 </head>
 <body>
     {% include 'navbar.html' %}
     <div class="container mt-4">
-        <h2>Personal Information</h2>
-        <!-- Form for personal information -->
-        <form method="POST" action="{{ url_for('settings') }}">
-            <table class="table table-bordered">
-                <tr>
-                    <td>Name</td>
-                    <td>
-                        <input type="text" name="name" class="form-control" value="{{ user_info.username }}" {% if not edit_mode %}readonly{% endif %}>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Email</td>
-                    <td>
-                        <input type="email" name="email" class="form-control" value="{{ user_info.email }}" {% if not edit_mode %}readonly{% endif %}>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Phone Number</td>
-                    <td>
-                        <input type="text" name="phone" class="form-control" value="{{ user_info.phone or '' }}" {% if not edit_mode %}readonly{% endif %}>
-                    </td>
-                </tr>
-            </table>
+        <!-- Personal Information Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Personal Information</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('settings') }}">
+                    <div class="form-group mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ user_info.username }}" {% if not edit_mode %}readonly{% endif %}>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{ user_info.email }}" {% if not edit_mode %}readonly{% endif %}>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="text" id="phone" name="phone" class="form-control" value="{{ user_info.phone or '' }}" {% if not edit_mode %}readonly{% endif %}>
+                    </div>
 
-            <!-- Buttons -->
-            {% if edit_mode %}
-            <button type="submit" class="btn btn-success">Save Changes</button>
-            <a href="{{ url_for('settings') }}" class="btn btn-secondary">Cancel</a>
-            {% else %}
-            <a href="{{ url_for('settings', edit='true') }}" class="btn btn-primary">Edit</a>
-            {% endif %}
-        </form>
+                    <!-- Buttons -->
+                    {% if edit_mode %}
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <a href="{{ url_for('settings') }}" class="btn btn-secondary">Cancel</a>
+                    {% else %}
+                    <a href="{{ url_for('settings', edit='true') }}" class="btn btn-primary">Edit</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
 
         <!-- Passwords Section -->
-        <h2>Passwords</h2>
-        {% if changePassword %}
-        <form method="POST" action="{{ url_for('settings', changePassword='true') }}">
-            <div class="mb-3">
-                <label for="currentPassword" class="form-label">Current Password</label>
-                <input type="password" id="currentPassword" name="current_password" class="form-control" required>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Passwords</h2>
             </div>
-            <div class="mb-3">
-                <label for="newPassword" class="form-label">New Password</label>
-                <input type="password" id="newPassword" name="new_password" class="form-control" required>
+            <div class="card-body">
+                {% if changePassword %}
+                <form method="POST" action="{{ url_for('settings', changePassword='true') }}">
+                    <div class="form-group mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit</button>
+                    <a href="{{ url_for('settings') }}" class="btn btn-secondary">Cancel</a>
+                </form>
+                {% else %}
+                <a href="{{ url_for('settings', changePassword='true') }}" class="btn btn-primary">Change Password</a>
+                {% endif %}
             </div>
-            <div class="mb-3">
-                <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                <input type="password" id="confirmPassword" name="confirm_password" class="form-control" required>
+        </div>
+
+        <!-- Additional Security Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Additional Security</h2>
             </div>
-            <button type="submit" class="btn btn-success">Submit</button>
-            <a href="{{ url_for('settings') }}" class="btn btn-secondary">Cancel</a>
-        </form>
-        {% else %}
-        <a href="{{ url_for('settings', changePassword='true') }}" class="btn btn-primary">Change Password</a>
-        {% endif %}
-
-        <h2>Additional Security</h2>
-        <h4>For added protection, if you forget your password, we ask you to answer a security question 
-            to verify your identity and assist you in resetting your password. 
-            We recommend selecting a question with a single word answer that is personal and easy for you to remember. 
-            Avoid questions that require lengthy answers, as the answer must be a perfect string match.</h4>
-
-        <!-- Form for security question -->
-        <form method="POST" action="{{ url_for('settings', securityQues='true') }}">
-            <div class="mb-3">
-                <label for="securityQuestion" class="form-label">Choose your security question:</label>
-                <input type="text" id="securityQuestion" name="security_question" class="form-control" value="{{ user_info.security_question or '' }}" required>
+            <div class="card-body">
+                <p class="lead">For added protection, if you forget your password, we ask you to answer a security question to verify your identity and assist you in resetting your password. We recommend selecting a question with a single word answer that is personal and easy for you to remember. Avoid questions that require lengthy answers, as the answer must be a perfect string match.</p>
+                <form method="POST" action="{{ url_for('settings', securityQues='true') }}">
+                    <div class="form-group mb-3">
+                        <label for="securityQuestion" class="form-label">Choose your security question:</label>
+                        <input type="text" id="securityQuestion" name="security_question" class="form-control" value="{{ user_info.security_question or '' }}" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="securityAnswer" class="form-label">Enter your security answer:</label>
+                        <input type="text" id="securityAnswer" name="security_answer" class="form-control" value="{{ user_info.security_answer or '' }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
             </div>
-
-            <div class="mb-3">
-                <label for="securityAnswer" class="form-label">Enter your security answer:</label>
-                <input type="text" id="securityAnswer" name="security_answer" class="form-control" value="{{ user_info.security_answer or '' }}" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save</button>
-        </form>
-
+        </div>
     </div>
     {% include 'footer.html' %}
 </body>

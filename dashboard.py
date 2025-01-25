@@ -2,10 +2,11 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from werkzeug.utils import secure_filename
 from predictor import process_and_score
 import os
-from models import User, JobProfile, db, ResumeResults
+from models import User, JobProfile, db, ResumeResults, JobApplication
 dashboard = Blueprint('dashboard', __name__)
 
 
+UPLOAD_FOLDER = './uploads'
 @dashboard.route('/admin_dashboard')
 def admin_dashboard():
     # Check if user is logged in and has an admin role
@@ -40,9 +41,16 @@ def job_seeker_dashboard():
             JobProfile.job_title,
             JobProfile.job_description,
             ResumeResults.resume_name,
-            ResumeResults.resume_path
-        ).join(ResumeResults, JobProfile.id == ResumeResults.job_profile_id).filter(ResumeResults.user_id == user_id).all()
-        
+            ResumeResults.resume_path,
+            User.username.label('recruiter_name'),
+            JobApplication.status,
+            ResumeResults.id.label('resume_id')
+        ).join(ResumeResults, JobProfile.id == ResumeResults.job_profile_id)\
+        .join(User, JobProfile.recruiter_id == User.id)\
+        .join(JobApplication, JobApplication.job_profile_id == JobProfile.id)\
+        .filter(ResumeResults.user_id == user_id)\
+        .all()
+
         return render_template('job_seeker_dashboard.html', applications=applications)
     else:
         flash('Please login as a Job Seeker to access the dashboard', 'warning')
@@ -87,19 +95,26 @@ def apply(job_id):
         resume = request.files['resume']
         if resume and (resume.filename.endswith('.pdf') or resume.filename.endswith('.docx')):
             filename = secure_filename(resume.filename)
-            file_path = os.path.join('uploads', filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
             resume.save(file_path)
             score = process_and_score(file_path, job.job_description)
 
-            # Save resume details to the database
+            # Save resume details to the database with consistent path
             new_resume = ResumeResults(
                 resume_name=filename,
-                resume_path=file_path,
+                resume_path=file_path,  # Use file_path as in the predict route
                 score=score,
                 job_profile_id=job.id,
                 user_id=session['user_id']  # Save the job seeker ID
             )
             db.session.add(new_resume)
+            
+            # Create an entry in job_applications
+            new_application = JobApplication(
+                job_profile_id=job.id,
+                user_id=session['user_id']  # Save the job seeker ID
+            )
+            db.session.add(new_application)
             db.session.commit()
             
             flash('Resume uploaded and submitted successfully!', 'success')
@@ -109,8 +124,6 @@ def apply(job_id):
 
     return render_template('apply.html', job=job)
 
-
- 
 
 
     

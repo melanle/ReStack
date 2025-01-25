@@ -54,6 +54,18 @@ def login():
 def about():
     return render_template('about.html')
 
+@app.route('/terms-of-service')
+def terms():
+    return render_template('terms.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/privacy-policy')
+def privacyPolicy():
+    return render_template('privacypolicy.html')
+
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
