@@ -1,5 +1,6 @@
 Flask
 Flask_wtf
+Flask-Migrate
 flask_sqlalchemy
 flask_bcrypt
 email_validator
@@ -7,3 +8,6 @@ python-docx
 google.generativeai
 PyPDF2
 markdown
+plotly
+plotly-express
+psycopg2
