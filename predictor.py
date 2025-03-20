@@ -1,4 +1,5 @@
 from flask import Blueprint, request, render_template, jsonify, session, flash, redirect, url_for, send_file
+import markdown
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import os
@@ -7,17 +8,16 @@ from PyPDF2 import PdfReader
 from docx import Document
 from models import User, JobProfile, ResumeResults, db
 
-# Create Blueprint
 predictor = Blueprint('predictor', __name__)
 UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-load_dotenv() #Loading env to activate API Key
 
-# Configure Gemini API
+load_dotenv() #Loading env to activate API Key
+base_model = "models/gemini-1.5-flash-001-tuning"
+
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
-# Create the Gemini model
 generation_config = {
     "temperature": 1,
     "top_p": 0.95,
@@ -30,6 +30,7 @@ model = genai.GenerativeModel(
     model_name="gemini-2.0-flash-exp",
     generation_config=generation_config,
 )
+
 
 #Extracting Text from pdf
 def extract_text_from_pdf(file_path):
@@ -49,8 +50,7 @@ def extract_text_from_docx(file_path):
         print(f"Error extracting text from DOCX: {e}")
         return ""
 
-def process_and_score(resume_path, job_description):
-    # Extract resume text
+def process_and_score(resume_path, job_description, get_recommendations=False):
     if resume_path.endswith(".pdf"):
         resume_text = extract_text_from_pdf(resume_path)
     elif resume_path.endswith(".docx"):
@@ -58,78 +58,101 @@ def process_and_score(resume_path, job_description):
     else:
         raise ValueError("Unsupported file format. Please upload a PDF or DOCX.")
 
-    user = User.query.get(session['user_id'])
-    if user.role == 'job_seeker':
-        # Create prompt for Gemini
-        prompt = f"""
-        You are a scoring system designed to strictly evaluate resumes against a given job description.  
-        Here is the job description:  {job_description}  
-        Here is the resume:  {resume_text}  
-        Evaluate the resume based solely on its relevance and quality in meeting the job requirements. Provide a single, overall score out of 100. Be objective and rigorous in your evaluation. Do not provide any explanation, details, or additional comments. Your response should only be the numerical score.
-        """
-    elif user.role == 'job_recruiter':
-        prompt = f"""
-        You are a scoring system designed to strictly evaluate resumes against a given job description.  
-        Here is the job description:  {job_description}  
-        Here is the resume:  {resume_text}  
-        Evaluate the resume based solely on its relevance and quality in meeting the job requirements. Provide a single, overall score out of 100. Be objective and rigorous in your evaluation. Do not provide any explanation, details, or additional comments. Your response should only be the numerical score.
-        """
-    # Send prompt to Gemini
-    chat_session = model.start_chat(history=[])
-    response = chat_session.send_message(prompt)
-    return float(response.text)
+    job_description = str(job_description)
+    resume_text = str(resume_text)
 
-# Flask routes
-@predictor.route('/predict', methods = ['GET', 'POST'])
+    if get_recommendations:
+        recommendation_prompt = f"""
+        You are a scoring and recommendation system designed to strictly evaluate my resume.
+        Based on the job description: {job_description} and the resume text: {resume_text},
+        evaluate the resume based solely on its relevance and quality in meeting the job requirements. 
+        Be objective and rigorous in your evaluation. Provide Suggestions on what could be added or improved in the resume
+        to make it better suited for the job. Provide detailed and actionable recommendations on the resume's structure, content, or skills under 500 words.
+        Make sure every section starts from a new line.
+        Generate an evaluation report in the following format:
+        **Score:** [Provide a score out of 100]\n\n
+        **Strengths:**</bold>\n\n
+        • [List strengths as bullet points]\n\n 
+        • [Each point should be concise]\n\n
+        **Weaknesses:**\n
+        • [List weaknesses as bullet points]\n\n
+        • [Each point should be direct]\n\n
+        **Suggestions:**\n
+        • [Provide actionable suggestions]\n\n
+        • [Ensure each suggestion is relevant]\n\n
+
+        Maintain this exact formatting, ensuring **double line breaks** between sections and *single line break after every bullet point.*
+
+        """
+        chat_session = model.start_chat(history=[])
+        recommendation_response = chat_session.send_message(str(recommendation_prompt))
+        response_text = recommendation_response.text
+        markdown_output = markdown.markdown(response_text)
+        return markdown_output
+
+    else:    
+        prompt = f"""
+        You are a scoring system designed to strictly evaluate resumes against a given job description.
+        Here is the job description:  {job_description}
+        Here is the resume:  {resume_text}
+        Evaluate the resume based solely on its relevance and quality in meeting the job requirements. Provide a single, overall score out of 100. Be objective and rigorous in your evaluation. Do not provide any explanation, details, or additional comments. Your response should only be the numerical score.
+        """
+        chat_session = model.start_chat(history=[])
+        response = chat_session.send_message(prompt)
+        return float(response.text)
+
+
+@predictor.route('/predict', methods=['GET', 'POST'])
 def predict():
+    user = User.query.get(session['user_id'])
+    if user.role != 'job_seeker':
+        flash('You must be a job seeker to view this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to home or another page as per your app
+
     error = None
     score = None
+    recommendations = None
 
     if request.method == 'POST':
         resume = request.files['resume']
         job_description = request.form['job_description']
+        get_recommendations = request.form.get('get_recommendations', False)  # Flag to get recommendations
 
-        # Save the uploaded file
         filename = secure_filename(resume.filename)
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         resume.save(file_path)
 
         try:
-            # Process and score the resume
-            score_response = process_and_score(file_path, job_description)
-            score = score_response  # Store the score
+            score_response = process_and_score(file_path, job_description, get_recommendations=get_recommendations)
+            score = score_response if not get_recommendations else None 
+            recommendations = score_response if get_recommendations else None
         except Exception as e:
-            error = str(e)  # Store the error message
+            error = str(e)
 
-    return render_template('predict.html', error=error, score=score)
+    return render_template('predict.html', error=error, score=score, recommendations=recommendations)
 
 
 @predictor.route('/view_resumes/<int:job_id>', methods=['GET', 'POST'])
 def view_resumes(job_id):
-    # Fetch the job profile from the database
     job = JobProfile.query.get_or_404(job_id)
 
     if request.method == 'POST':
-        # Ensure files are present in the request
         if 'resumes' not in request.files:
             flash('No resumes uploaded!', 'danger')
             return jsonify({"status": "danger", "message": "No resumes uploaded!"})
 
         uploaded_resumes = request.files.getlist('resumes')
 
-        # Validate and save each uploaded resume
         for resume in uploaded_resumes:
-            # Check if the resume has a valid file extension (PDF or DOCX)
             if resume and (resume.filename.endswith('.pdf') or resume.filename.endswith('.docx')):
                 filename = secure_filename(resume.filename)
                 file_path = os.path.join(UPLOAD_FOLDER, filename)
                 resume.save(file_path)
 
                 try:
-                    # Process and score each resume
                     score = process_and_score(file_path, job.job_description)
 
-                    # Save resume details to the database
+                    # Save resume details to the db
                     new_resume = ResumeResults(
                         resume_name=filename,
                         score=score,

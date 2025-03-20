@@ -4,30 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Scoring</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 50px auto;
+        }
+        h2 {
+            margin-bottom: 30px;
+            font-size: 2rem;
+            color: #343a40;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            margin-top: 5px;
+            font-size: 1rem;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 8px;
+        }
+        .score-result {
+            margin-top: 20px;
+            background-color: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            color: #155724;
+            font-size: 1.2rem;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+        .recommendations {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff3cd;
+            border-radius: 8px;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        .checkbox-label input {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
-    {%include 'navbar.html'%}
-    <h1>Resume Scoring System</h1>
+    {% include 'navbar.html' %}
 
-    <form action="/predict" method="POST" enctype="multipart/form-data">
-        <label for="job_description">Job Description:</label><br>
-        <textarea id="job_description" name="job_description" rows="6" cols="50" required></textarea><br><br>
+    <div class="container">
+        <h2 class="text-center">Test your resume</h2>
+        <form method="POST" action="/predict" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="resume">Upload Your Resume:</label>
+                <input type="file" name="resume" id="resume" required class="form-control-file">
+            </div>
+            <div class="form-group">
+                <label for="job_description">Job Description:</label>
+                <textarea name="job_description" id="job_description" required class="form-control"></textarea>
+            </div>
+            <div class="form-group checkbox-label">
+                <input type="checkbox" name="get_recommendations" id="get_recommendations" value="true">
+                <label for="get_recommendations">Get Recommendations</label>
+            </div>
+            <div class="form-group">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
 
-        <label for="resume">Upload Resume (PDF/DOCX):</label><br>
-        <input type="file" id="resume" name="resume" accept=".pdf,.docx" required><br><br>
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+        {% if score %}
+            <div class="score-result">Your Resume Score: {{ score }}</div>
+        {% endif %}
+        {% if recommendations %}
+            <div class="recommendations">
+                <h5>Recommendations:</h5>
+                <p>{{ recommendations|safe }}</p>
+            </div>
+        {% endif %}
+    </div>
 
-        <button type="submit">Score Resume</button>
-    </form>
-
-    <!-- Display error message if there's an error -->
-    {% if error %}
-        <p style="color: red;">Error: {{ error }}</p>
-    {% endif %}
-
-    <!-- Display score if it's calculated -->
-    {% if score %}
-        <h2>Your Resume Score: {{ score }}</h2>
-    {% endif %}
-    {%include 'footer.html'%}
+    {% include 'footer.html' %}
 </body>
 </html>

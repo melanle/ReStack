@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{{url_for ('static', filename='contact.css')}}"
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1>Contact Us</h1>
+        <p>Have a few questions regarding the website?</p>
+        <p>Feel free to reach out to me!</p>
+        <p>I would love to hear from you!</p
+
+        <div class="contact-info">
+            <p><i class="fas fa-envelope"></i> Email - <a href="mailto:fernsmelanie27@gmail.com">fernsmelanie27@gmail.com</a></p>
+            <p><i class="fas fa-phone-alt"></i> Phone - <a href="tel:+1234567890">+1 (234) 567-890</a></p>
+            <p><i class="fab fa-linkedin"></i> LinkedIn - <a href= "https://www.linkedin.com/in/melanie-fernandes-9aa0271a2/">Melanie Fernandes</a></p>
+        </div>
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

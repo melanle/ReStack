@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Apply for {{ job.job_title }}</title>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container mt-4">
+        <h2 class="text-center">Apply for "{{ job.job_title }}"</h2>
+        <p class="text-muted text-center">Posted by {{ job.recruiter_name }}</p>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Job Description</h5>
+                <p class="card-text">{{ job.job_description }}</p>
+            </div>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="mt-4">
+            <div class="mb-3">
+                <label for="resume" class="form-label">Upload Your Resume</label>
+                <input type="file" name="resume" id="resume" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Application</button>
+            <a href="{{ url_for('dashboard.jobs') }}" class="btn btn-secondary">Back to Jobs</a>
+        </form>
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

@@ -3,30 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Recruiter Signup</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Job Recruiter Signup - ReStack</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}"> -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
+<style>
+    body {
+        background-color: #f7f9fc;
+        font-family: 'Arial', sans-serif;
+        color: #333;
+    }
+    
+    .container {
+        background-color: #ffffff;
+        padding: 30px;
+        margin-top: 50px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        margin: 50px auto;
+    }
+    
+    h1, h2 {
+        color: #005f73;
+    }
+    
+    .form-group label {
+        font-weight: bold;
+    }
+    
+    .btn-primary {
+        background-color: #005f73;
+        border-color: #005f73;
+    }
+    
+    .btn-primary:hover {
+        background-color: #01252c;
+        border-color: #01252c;
+    }
+    
+    .form-group.text-center p {
+        margin-top: 15px;
+    }
+    
+    .form-group.text-center a {
+        color: #005f73;
+        text-decoration: none;
+    }
+    
+    .form-group.text-center a:hover {
+        text-decoration: underline;
+        color: #01252c;
+    }
+    
+    .link {
+        display: block;
+        margin-top: 10px;
+        text-align: right;
+        color: #005f73;
+        text-decoration: none;
+    }
+    
+    .link:hover {
+        text-decoration: underline;
+        color: #01252c;
+    }
+    </style>
 <body>
-    {%include 'navbar.html'%}
+    {% include 'navbar.html' %}
+    <h1 class="text-center mt-4">Welcome!</h1>
+    <h2 class="text-center mb-4">Sign Up as a Job Recruiter</h2>
     <div class="container">
-        <h2>Sign Up as a Job Recruiter</h2>
         <form method="POST" action="{{ url_for('signup.signup_job_recruiter') }}">
             {{ form.hidden_tag() }}
+            
             <div class="form-group">
-                {{ form.organization_name.label }} {{ form.organization_name(size=32, class="form-control") }}
+                <label for="organization_name">{{ form.organization_name.label }}</label>
+                {{ form.organization_name(class="form-control") }}
             </div>
+
             <div class="form-group">
-                {{ form.email.label }} {{ form.email(size=32, class="form-control") }}
+                <label for="email">{{ form.email.label }}</label>
+                {{ form.email(class="form-control") }}
             </div>
+
             <div class="form-group">
-                {{ form.password.label }} {{ form.password(size=32, class="form-control") }}
+                <label for="password">{{ form.password.label }}</label>
+                {{ form.password(class="form-control") }}
             </div>
+
             <div class="form-group">
-                {{ form.confirm_password.label }} {{ form.confirm_password(size=32, class="form-control") }}
+                <label for="confirm_password">{{ form.confirm_password.label }}</label>
+                {{ form.confirm_password(class="form-control") }}
             </div>
-            <button type="submit" class="btn btn-primary">Sign Up</button>
+
+            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+
+            <div class="form-group text-center">
+                <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+            </div>
         </form>
     </div>
-    {%include 'footer.html'%}
+    {% include 'footer.html' %}
 </body>
 </html>

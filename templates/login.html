@@ -1,26 +1,81 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title></title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-        <style>
-            .container{
-                background-color: #ddd;
-                padding: 20px;
-                margin-top: 20px;
-                margin-bottom: 20px;
-                width: 500px;
-            }
-        </style>
-    </head>
-    <body>
-    {%include 'navbar.html'%}
-    <h1 class="text-center">Welcome!</h1>
-    <h2 class="text-center">Login to your account</h2>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ReStack</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            margin-top: 50px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        h1, h2 {
+            color: #005f73;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #005f73;
+            border-color: #005f73;
+        }
+
+        .btn-primary:hover {
+            background-color: #01252c;
+            border-color: #01252c;
+        }
+
+        .link {
+            display: block;
+            margin-top: 10px;
+            text-align: right;
+            color: #005f73;
+            text-decoration: none;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+            color: #01252c;
+        }
+
+        .form-group.text-center p {
+            margin-top: 15px;
+        }
+
+        .form-group.text-center a {
+            color: #005f73;
+            text-decoration: none;
+        }
+
+        .form-group.text-center a:hover {
+            text-decoration: underline;
+            color: #01252c;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <h1 class="text-center mt-4">Welcome!</h1>
+    <h2 class="text-center mb-4">Login to your account</h2>
     <div class="container">
         <form method="POST" action="">
             {{ form.hidden_tag() }}
-            
+
             <div class="form-group">
                 <label for="email">{{ form.email.label }}</label>
                 {{ form.email(class="form-control") }}
@@ -31,7 +86,7 @@
                 {{ form.password(class="form-control") }}
             </div>
 
-            <a href="{{url_for('resetpassword')}}" class="link">Forgot Password?</a>
+            <a href="{{ url_for('resetpassword') }}" class="link">Forgot Password?</a>
 
             <div class="form-group">
                 {{ form.submit(class="btn btn-primary btn-block") }}
@@ -42,6 +97,6 @@
             </div>
         </form>
     </div>
-    {% include 'footer.html'%}
-    </body>
+    {% include 'footer.html' %}
+</body>
 </html>

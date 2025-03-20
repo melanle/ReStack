@@ -1,3 +1,40 @@
-{% include 'navbar.html'%}
-<h1>About Us</h1>
-{% include 'footer.html'%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/about.css') }}">
+    <title>About Us - {{session['username']}}</title>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <!-- About Us Section -->
+    <div class="about-section">
+        <div class="container text-center">
+            <h1>About Us</h1>
+            <p class="lead">In today's fast-paced job market, it's crucial to have a competitive edge. Our platform harnesses the power of advanced language learning models (LLMs) to revolutionize the job seeking process. By automating resume scoring, we ensure that your resume meets the specific requirements of the job you are applying for, giving you a better chance of standing out.</p>
+        </div>
+    </div>
+
+    <!-- Our Story Section -->
+    <div class="container story-section text-center">
+        <h2>Our Story</h2>
+        <p>
+            I'm Melanie Fernandes, a college student who knows the struggle of job hunting. To make this process easier, I built this app. With LLM-driven resume scoring, the app automates the job of reviewing resumes for job seekers. You no longer have to sift through multiple resumes; the app does it for you.
+        </p>
+        <p>
+            For job seekers, we offer features that allow you to compare your resume against job descriptions and gain insights and recommendations. If your resume doesn't generate a high score, you get suggestions on how to improve it. Our goal is to make your job search efficient and successful.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+
+    <!-- Add Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
