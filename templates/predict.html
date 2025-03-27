@@ -15,8 +15,10 @@
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
             margin: 50px auto;
+        }
+        .left-form {
+            max-width: 600px;
         }
         h2 {
             margin-bottom: 30px;
@@ -95,37 +97,52 @@
     {% include 'navbar.html' %}
 
     <div class="container">
-        <h2 class="text-center">Test your resume</h2>
-        <form method="POST" action="/predict" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="resume">Upload Your Resume:</label>
-                <input type="file" name="resume" id="resume" required class="form-control-file">
-            </div>
-            <div class="form-group">
-                <label for="job_description">Job Description:</label>
-                <textarea name="job_description" id="job_description" required class="form-control"></textarea>
-            </div>
-            <div class="form-group checkbox-label">
-                <input type="checkbox" name="get_recommendations" id="get_recommendations" value="true">
-                <label for="get_recommendations">Get Recommendations</label>
-            </div>
-            <div class="form-group">
-                <button type="submit">Submit</button>
-            </div>
-        </form>
+        <div class="row justify-content-start">
+            <div class="col-md-8">
 
-        {% if error %}
-            <div class="error-message">{{ error }}</div>
-        {% endif %}
-        {% if score %}
-            <div class="score-result">Your Resume Score: {{ score }}</div>
-        {% endif %}
-        {% if recommendations %}
-            <div class="recommendations">
-                <h5>Recommendations:</h5>
-                <p>{{ recommendations|safe }}</p>
+                {% if not score and not error and not recommendations %}
+                    <!-- Form section -->
+                    <div class="left-form">
+                        <h2>Test your resume</h2>
+                        <form method="POST" action="/predict" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="resume">Upload Your Resume:</label>
+                                <input type="file" name="resume" id="resume" required class="form-control-file">
+                            </div>
+                            <div class="form-group">
+                                <label for="job_description">Job Description:</label>
+                                <textarea name="job_description" id="job_description" required class="form-control"></textarea>
+                            </div>
+                            <div class="form-group checkbox-label">
+                                <input type="checkbox" name="get_recommendations" id="get_recommendations" value="true">
+                                <label for="get_recommendations">Get Recommendations</label>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+
+                {% else %}
+                    <!-- Results section -->
+                    {% if error %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endif %}
+                    {% if score %}
+                        <div class="score-result">Your Resume Score: {{ score }}</div>
+                    {% endif %}
+                    {% if recommendations %}
+                        <div class="recommendations">
+                            <h5>Recommendations:</h5>
+                            <p>{{ recommendations|safe }}</p>
+                        </div>
+                    {% endif %}
+                    <div class="form-group mt-4">
+                        <a href="/predict" class="btn btn-primary btn-block">Try Another Resume</a>
+                    </div>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
     </div>
 
     {% include 'footer.html' %}

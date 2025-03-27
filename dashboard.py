@@ -2,10 +2,6 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from werkzeug.utils import secure_filename
 from predictor import process_and_score
 from sqlalchemy.sql import func
-import json
-import pandas as pd
-import plotly
-import plotly.express as px
 import os
 from models import User, JobProfile, db, ResumeResults, JobApplication
 dashboard = Blueprint('dashboard', __name__)

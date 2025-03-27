@@ -11,3 +11,4 @@ markdown
 plotly
 plotly-express
 psycopg2
+sendgrid

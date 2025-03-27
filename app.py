@@ -6,6 +6,16 @@ from forms import LoginForm
 from signup import signup 
 from dashboard import dashboard
 from predictor import predictor
+import smtplib 
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from itsdangerous import URLSafeTimedSerializer
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
+LOGIN_PASSWORD = os.getenv('LOGIN_PASSWORD')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'FDKJF224EWK'
@@ -147,66 +157,87 @@ def settings():
     return redirect(url_for('login'))
 
 
+
+
+# Secret key for token generation
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
 @app.route('/resetpassword', methods=['GET', 'POST'])
 def resetpassword():
-    user = None
-    reset_password_mode = False
-    security_check_mode = False
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            token = s.dumps(user.email, salt='password-reset')
+            reset_url = url_for('resetpassword_token', token=token, _external=True)
+            email_body = f"Click the link below to reset your password:\n{reset_url}"
+
+            if send_email(user.email, "Password Reset Request", email_body):
+                flash("A password reset link has been sent to your email. You can close this window.", "info")
+            else:
+                flash("Error sending email. Try again later.", "danger")
+        else:
+            flash("Email not found.", "danger")
+
+    return render_template('resetpassword.html')
+
+
+@app.route('/resetpassword/<token>', methods=['GET', 'POST'])
+def resetpassword_token(token):
+    try:
+        email = s.loads(token, salt='password-reset', max_age=3600)  # Token valid for 1 hour
+    except:
+        flash("Invalid or expired token.", "danger")
+        return redirect(url_for('resetpassword'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('resetpassword'))
 
     if request.method == 'POST':
-        # Check which form was submitted
-        if 'username_email' in request.form:
-            username_email = request.form['username_email']
-            user = User.query.filter((User.username == username_email) | (User.email == username_email)).first()
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
 
-            if not user:
-                flash("Invalid user. Please try again.", 'danger')
-                return redirect(url_for('resetpassword'))  # Redirect to the same page
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "danger")
+        else:
+            user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            db.session.commit()
+            flash("Password reset successful. You can now log in.", "success")
+            return redirect(url_for('login'))
 
-            flash(f"Security Question: {user.security_question}", 'info')
-            return render_template('resetpassword.html', user=user, security_check_mode=True)
-
-        elif 'security_answer' in request.form:
-            user_id = request.form['user_id']
-            security_answer = request.form['security_answer']
-            user = User.query.get(user_id)
-
-            if not user or user.security_answer.lower() != security_answer.lower():
-                flash("Incorrect answer to the security question. Please try again.", 'danger')
-                return redirect(url_for('resetpassword'))
-
-            flash("Security answer verified. Please enter your new password.", 'success')
-            return render_template('resetpassword.html', user=user, reset_password_mode=True)
-
-        elif 'new_password' in request.form:
-            user_id = request.form['user_id']
-            new_password = request.form['new_password']
-            confirm_password = request.form['confirm_password']
-
-            if new_password != confirm_password:
-                flash("Passwords do not match. Please try again.", 'danger')
-                return redirect(url_for('resetpassword'))
-
-            user = User.query.get(user_id)
-            if user:
-                # Hash the new password
-                hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-                user.password = hashed_password
-                db.session.commit()
-                flash("Password reset successful. You can now log in.", 'success')
-                return redirect(url_for('login'))
-
-    return render_template('resetpassword.html', user=user, reset_password_mode=reset_password_mode, security_check_mode=security_check_mode)
+    return render_template('resetpassword_form.html', token=token)
 
 
-# Main admin, job seeker and job recruiter dashboards to see the data
 app.register_blueprint(dashboard)
 
 app.register_blueprint(predictor)
 
+def send_email(to_email, subject, body):
+    sender_email = EMAIL_ADDRESS
+    sender_password = LOGIN_PASSWORD
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = to_email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.send_message(message)
+        return True
+    except Exception as e:
+        print("Error sending email:", e)
+        return False
+
+
 @app.route('/logout')
 def logout():
-    session.clear()  # Clears all session data at once
+    session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 

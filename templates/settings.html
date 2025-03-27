@@ -65,6 +65,7 @@
                     <a href="{{ url_for('settings') }}" class="btn btn-secondary">Cancel</a>
                 </form>
                 {% else %}
+                <p>Change your password:</p>
                 <a href="{{ url_for('settings', changePassword='true') }}" class="btn btn-primary">Change Password</a>
                 {% endif %}
             </div>
@@ -76,7 +77,7 @@
                 <h2>Additional Security</h2>
             </div>
             <div class="card-body">
-                <p class="lead">For added protection, if you forget your password, we ask you to answer a security question to verify your identity and assist you in resetting your password. We recommend selecting a question with a single word answer that is personal and easy for you to remember. Avoid questions that require lengthy answers, as the answer must be a perfect string match.</p>
+                <p class="lead">In cases where we need additional security, we like to ask you a security question. This question can be customised by you. We recommend selecting a question with a single word answer that is personal and easy for you to remember. Avoid questions that require lengthy answers, as the answer must be a perfect string match.</p>
                 <form method="POST" action="{{ url_for('settings', securityQues='true') }}">
                     <div class="form-group mb-3">
                         <label for="securityQuestion" class="form-label">Choose your security question:</label>

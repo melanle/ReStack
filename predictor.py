@@ -200,6 +200,8 @@ def view_resumes(job_id):
 
     # Fetch resumes associated with the job profile
     resumes = ResumeResults.query.filter_by(job_profile_id=job_id).all()
+    # Sorting in terms of highest to lowest scores
+    resumes = sorted(resumes, key=lambda r:r.score, reverse=True)
 
     # Pass the job and resumes to the template
     return render_template('view_resumes.html', job=job, resumes=resumes)
