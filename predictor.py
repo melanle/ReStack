@@ -6,7 +6,7 @@ import os
 import google.generativeai as genai
 from PyPDF2 import PdfReader
 from docx import Document
-from models import User, JobProfile, ResumeResults, db
+from models import User, JobProfile, ResumeResults, db, JobApplication
 
 predictor = Blueprint('predictor', __name__)
 UPLOAD_FOLDER = './uploads'
@@ -137,74 +137,88 @@ def view_resumes(job_id):
     job = JobProfile.query.get_or_404(job_id)
 
     if request.method == 'POST':
-        if 'resumes' not in request.files:
-            flash('No resumes uploaded!', 'danger')
-            return jsonify({"status": "danger", "message": "No resumes uploaded!"})
 
-        uploaded_resumes = request.files.getlist('resumes')
+        # If uploading resumes
+        if 'resumes' in request.files:
+            uploaded_resumes = request.files.getlist('resumes')
 
-        for resume in uploaded_resumes:
-            if resume and (resume.filename.endswith('.pdf') or resume.filename.endswith('.docx')):
-                filename = secure_filename(resume.filename)
-                file_path = os.path.join(UPLOAD_FOLDER, filename)
-                resume.save(file_path)
+            for resume in uploaded_resumes:
+                if resume and (resume.filename.endswith('.pdf') or resume.filename.endswith('.docx')):
+                    filename = secure_filename(resume.filename)
+                    file_path = os.path.join(UPLOAD_FOLDER, filename)
+                    resume.save(file_path)
 
-                try:
-                    score = process_and_score(file_path, job.job_description)
+                    try:
+                        score = process_and_score(file_path, job.job_description)
 
-                    # Save resume details to the db
-                    new_resume = ResumeResults(
-                        resume_name=filename,
-                        score=score,
-                        resume_path=file_path,
-                        job_profile_id=job.id
-                    )
-                    db.session.add(new_resume)
-                    db.session.commit()
+                        new_resume = ResumeResults(
+                            resume_name=filename,
+                            score=score,
+                            resume_path=file_path,
+                            job_profile_id=job.id
+                        )
+                        db.session.add(new_resume)
+                        db.session.commit()
 
-                except Exception as e:
-                    flash(f"Error processing resume '{filename}': {str(e)}", 'danger')
-                    return jsonify({"status": "danger", "message": f"Error processing resume '{filename}': {str(e)}"})
-            else:
-                flash('Incorrect file format! Please upload only PDF or DOCX files.', 'danger')
-                return jsonify({"status": "danger", "message": "Incorrect file format! Please upload only PDF or DOCX files."})
+                    except Exception as e:
+                        return jsonify({"status": "danger", "message": f"Error processing resume '{filename}': {str(e)}"})
+                else:
+                    return jsonify({"status": "danger", "message": "Incorrect file format! Please upload only PDF or DOCX files."})
 
-        # Instead of redirecting, return the updated resumes as JSON
-        resumes = ResumeResults.query.filter_by(job_profile_id=job_id).all()
-        resume_rows = ""
-        for resume in resumes:
-            resume_rows += f"""
-            <tr id="resumeRow-{resume.id}">
-                <td>{resume.resume_name}</td>
-                <td>
-                    <span class="badge 
-                        {'badge-green' if resume.score >= 80 else 'badge-orange' if resume.score >= 50 else 'badge-red'}">
-                        {resume.score}% 
-                    </span>
-                </td>
-                <td>
-                    <a href="{url_for('predictor.viewres', resume_id=resume.id)}" class="btn btn-sm btn-info" target="_blank">View</a>
-                    <form method="POST" action="{url_for('predictor.delete_resume', resume_id=resume.id)}" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            """
+            resumes = ResumeResults.query.filter_by(job_profile_id=job_id).all()
+            resume_rows = ""
+            for resume in resumes:
+                resume_rows += f"""
+                <tr id="resumeRow-{resume.id}">
+                    <td>{resume.resume_name}</td>
+                    <td>
+                        <span class="badge 
+                            {'badge-green' if resume.score >= 80 else 'badge-orange' if resume.score >= 50 else 'badge-red'}">
+                            {resume.score}% 
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{url_for('predictor.viewres', resume_id=resume.id)}" class="btn btn-sm btn-info" target="_blank">View</a>
+                        <form method="POST" action="{url_for('predictor.delete_resume', resume_id=resume.id)}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                """
 
-        # Return success response with a proper message
-        return jsonify({
-            "status": "success",
-            "message": "Resumes uploaded and processed successfully!",
-            "rows": resume_rows
-        })
+            return jsonify({
+                "status": "success",
+                "message": "Resumes uploaded and processed successfully!",
+                "rows": resume_rows
+            })
 
-    # Fetch resumes associated with the job profile
+        # If neither action triggered
+        return jsonify({"status": "danger", "message": "Invalid request or missing data."}), 400
+
+    # GET request
     resumes = ResumeResults.query.filter_by(job_profile_id=job_id).all()
-    # Sorting in terms of highest to lowest scores
-    resumes = sorted(resumes, key=lambda r:r.score, reverse=True)
+    resumes = sorted(resumes, key=lambda r: r.score, reverse=True)
 
-    # Pass the job and resumes to the template
     return render_template('view_resumes.html', job=job, resumes=resumes)
+
+@predictor.route('/update_status/<int:resume_id>', methods=['POST'])
+def update_status(resume_id):
+    # Validate that the user is a recruiter
+    if session.get('user_role') != 'job_recruiter':
+        return jsonify({"status": "error", "message": "Permission denied"}), 403
+
+    # Retrieve the new status from the AJAX request
+    new_status = request.json.get('status')
+    if new_status not in ['Pending', 'In Touch', 'Selected', 'Not Selected']:
+        return jsonify({"status": "error", "message": "Invalid status"}), 400
+
+    # Update the resume in the database
+    resume = ResumeResults.query.get_or_404(resume_id)
+    resume.status = new_status
+    db.session.commit()
+
+    return jsonify({"status": "success", "message": "Status updated successfully!"})
+
 
 
 

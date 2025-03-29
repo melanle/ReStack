@@ -82,11 +82,12 @@ def job_seeker_dashboard():
             ResumeResults.resume_name,
             ResumeResults.resume_path,
             User.username.label('recruiter_name'),
-            JobApplication.status,
+            ResumeResults.status,
             ResumeResults.id.label('resume_id')
         ).join(ResumeResults, JobProfile.id == ResumeResults.job_profile_id)\
         .join(User, JobProfile.recruiter_id == User.id)\
-        .join(JobApplication, JobApplication.job_profile_id == JobProfile.id)\
+        .join(JobApplication, (JobApplication.job_profile_id == JobProfile.id) & 
+                              (JobApplication.user_id == ResumeResults.user_id))\
         .filter(ResumeResults.user_id == user_id)\
         .all()
 
@@ -94,31 +95,96 @@ def job_seeker_dashboard():
     else:
         flash('Please login as a Job Seeker to access the dashboard', 'warning')
         return redirect(url_for('login'))
+    
+@dashboard.route('/delete_application/<int:resume_id>', methods=['POST'])
+def delete_application(resume_id):
+    resume = ResumeResults.query.get_or_404(resume_id)
+
+    try:
+        # Delete the file from the file system
+        if os.path.exists(resume.resume_path):
+            os.remove(resume.resume_path)
+
+        # Remove the record from the ResumeResults table
+        db.session.delete(resume)
+
+        # Remove the associated entry in the JobApplication table
+        job_application = JobApplication.query.filter_by(
+            job_profile_id=resume.job_profile_id,
+            user_id=session['user_id']
+        ).first()
+
+        if job_application:
+            db.session.delete(job_application)
+
+        db.session.commit()
+        flash("Application deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting application: {str(e)}", "danger")
+
+    return redirect(url_for('dashboard.job_seeker_dashboard'))
+
+    #     return jsonify({"status": "success", "message": "Resume deleted successfully!"})
+    # except Exception as e:
+    #     return jsonify({"status": "error", "message": f"Error deleting resume: {str(e)}"}), 500
 
 
 
 
 
-@dashboard.route('/jobs', methods=['GET', 'POST'])
+@dashboard.route('/jobs', methods=['GET'])
 def jobs():
-    search_query = request.args.get('q', '')  # Get the search query from the URL parameters
-    query = db.session.query(
-        JobProfile.id,
-        JobProfile.job_title,
-        JobProfile.job_description,
-        JobProfile.created_at,
-        User.username.label("recruiter_name")
-    ).join(User, JobProfile.recruiter_id == User.id)
+    if 'user_id' in session and session.get('user_role') == 'job_seeker':
+        user_id = session['user_id']  # Get the logged-in user's ID
+        search_query = request.args.get('q', '')  # Get the search query from the URL parameters
+        
+        # Query to get all job profiles excluding jobs currently applied for by the user
+        query = db.session.query(
+            JobProfile.id,
+            JobProfile.job_title,
+            JobProfile.job_description,
+            JobProfile.created_at,
+            User.username.label("recruiter_name")
+        ).join(User, JobProfile.recruiter_id == User.id)\
+        .outerjoin(JobApplication, (JobApplication.job_profile_id == JobProfile.id) & 
+                                     (JobApplication.user_id == user_id))\
+        .filter(JobApplication.id.is_(None))  # Exclude jobs the user has applied for
+
+        # Filter the job profiles if a search query is provided
+        if search_query:
+            query = query.filter(
+                JobProfile.job_title.ilike(f"%{search_query}%") | 
+                JobProfile.job_description.ilike(f"%{search_query}%")
+            )
+        
+        job_profiles = query.all()
+        return render_template('jobs.html', jobs=job_profiles, search_query=search_query)
+    else:
+        flash('Please log in as a Job Seeker to view available jobs.', 'warning')
+        return redirect(url_for('login'))
+
+
+
+# @dashboard.route('/jobs', methods=['GET', 'POST'])
+# def jobs():
+#     search_query = request.args.get('q', '')  # Get the search query from the URL parameters
+#     query = db.session.query(
+#         JobProfile.id,
+#         JobProfile.job_title,
+#         JobProfile.job_description,
+#         JobProfile.created_at,
+#         User.username.label("recruiter_name")
+#     ).join(User, JobProfile.recruiter_id == User.id)
     
-    # Filter the job profiles if a search query is provided
-    if search_query:
-        query = query.filter(
-            JobProfile.job_title.ilike(f"%{search_query}%") | 
-            JobProfile.job_description.ilike(f"%{search_query}%")
-        )
+#     # Filter the job profiles if a search query is provided
+#     if search_query:
+#         query = query.filter(
+#             JobProfile.job_title.ilike(f"%{search_query}%") | 
+#             JobProfile.job_description.ilike(f"%{search_query}%")
+#         )
     
-    job_profiles = query.all()
-    return render_template('jobs.html', jobs=job_profiles, search_query=search_query)
+#     job_profiles = query.all()
+#     return render_template('jobs.html', jobs=job_profiles, search_query=search_query)
 
 
 @dashboard.route('/apply/<int:job_id>', methods=['GET', 'POST'])

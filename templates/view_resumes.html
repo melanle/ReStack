@@ -48,6 +48,7 @@
                     <tr>
                         <th>Resume Name</th>
                         <th>Score (%)</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -69,11 +70,19 @@
                                 </span>
                             </td>
                             <td>
+                                <select class="form-control status-dropdown" data-resume-id="{{ resume.id }}">
+                                    <option value="Pending" {% if resume.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="In Touch" {% if resume.status == 'In Touch' %}selected{% endif %}>In Touch</option>
+                                    <option value="Selected" {% if resume.status == 'Selected' %}selected{% endif %}>Selected</option>
+                                    <option value="Not Selected" {% if resume.status == 'Not Selected' %}selected{% endif %}>Not Selected</option>
+                                </select>
+                            </td>
+                            <td>
                                 <a href="{{ url_for('predictor.viewres', resume_id=resume.id) }}" class="btn btn-sm btn-info" target="_blank">View</a>
                                 <form method="POST" action="{{ url_for('predictor.delete_resume', resume_id=resume.id) }}" style="display:inline;">
                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
-                            </td>
+                            </td>                           
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -83,6 +92,24 @@
 
     <script>
         $(document).ready(function () {
+            // Handle status dropdown changes
+            $('.status-dropdown').on('change', function () {
+                var newStatus = $(this).val();
+                var resumeId = $(this).data('resume-id');
+
+                $.ajax({
+                    url: "/update_status/" + resumeId,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ status: newStatus }),
+                    success: function (response) {
+                        $('#flashMessages').html('<div class="alert alert-success">' + response.message + '</div>');
+                    },
+                    error: function (xhr) {
+                        $('#flashMessages').html('<div class="alert alert-danger">Error updating status: ' + xhr.responseJSON.message + '</div>');
+                    }
+                });
+            });
             // Handle resume upload
             $('#uploadForm').on('submit', function (e) {
                 e.preventDefault();

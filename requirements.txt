@@ -8,7 +8,4 @@ python-docx
 google.generativeai
 PyPDF2
 markdown
-plotly
-plotly-express
 psycopg2
-sendgrid

@@ -45,6 +45,7 @@ class ResumeResults(db.Model):
     job_profile_id = db.Column(db.Integer, db.ForeignKey('job_profiles.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='Pending')
     
     # Relationship with the JobProfile model
     job_profile = db.relationship('JobProfile', back_populates='resumes')
@@ -60,7 +61,6 @@ class JobApplication(db.Model):
     job_profile_id = db.Column(db.Integer, db.ForeignKey('job_profiles.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='Pending')
 
     # Relationships
     job_profile = db.relationship('JobProfile', backref='job_applications')
