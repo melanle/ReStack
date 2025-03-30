@@ -91,32 +91,36 @@
     {%include 'footer.html'%}
 </body>
 <script>
-    $(document).ready(function () {
-        // Handle dynamic deletion of resumes
-        $(document).on('submit', 'form[action*="delete_application"]', function (e) {
-            e.preventDefault(); // Prevent default form submission
-            var form = $(this);
-            var rowId = form.closest('tr').attr('id'); // Find the row ID
+$(document).ready(function () {
+    // Handle dynamic deletion of applications
+    $(document).on('submit', 'form[action*="delete_application"]', function (e) {
+        e.preventDefault(); // Prevent default form submission
+        var form = $(this);
+        var row = form.closest('tr'); // Find the row
 
-            $.ajax({
-                url: form.attr('action'),
-                method: form.attr('method'),
-                contentType: "application/json", // Set JSON content type
-                success: function (response) {
-                    if (response.status === "success") {
-                        // Remove the corresponding row from the table
-                        $('#' + rowId).remove();
-                        $('#flashMessages').html('<div class="alert alert-success">' + response.message + '</div>');
-                    } else {
-                        $('#flashMessages').html('<div class="alert alert-danger">' + response.message + '</div>');
-                    }
-                },
-                error: function (xhr, status, error) {
-                    $('#flashMessages').html('<div class="alert alert-danger">Error deleting resume: ' + error + '</div>');
+        $.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            contentType: "application/json",
+            success: function (response) {
+                if (response.status === "success") {
+                    // Remove the row smoothly
+                    row.fadeOut(300, function () {
+                        $(this).remove();
+                    });
+                    $('#flashMessages').html('<div class="alert alert-success">' + response.message + '</div>');
+                } else {
+                    $('#flashMessages').html('<div class="alert alert-danger">' + response.message + '</div>');
                 }
-            });
+            },
+            error: function (xhr, status, error) {
+                $('#flashMessages').html('<div class="alert alert-danger">Error deleting resume: ' + error + '</div>');
+            }
         });
     });
+});
+
+
 </script>
 
 </html>

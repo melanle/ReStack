@@ -31,14 +31,25 @@
             <tbody>
                 {% for job in job_profiles %}
                 <tr>
-                    <td>{{ job.job_title }}</td>
-                    <td>{{ job.job_description }}</td>
+                    <td class="job-title">{{ job.job_title }}</td>
+                    <td class="job-description">
+                        {% if job.job_description|length > 150 %}
+                            <div class="text-container" id="container-{{ job.id }}">
+                                <span class="short-text">{{ job.job_description[:150] }}</span>
+                                <span class="long-text d-none">{{ job.job_description }}</span>
+                            </div>
+                            <a class="btn btn-link p-0 toggle-btn" data-job-id="{{ job.id }}">See More</a>
+                        {% else %}
+                            <span>{{ job.job_description }}</span> <!-- Show full text if short -->
+                        {% endif %}
+                    </td>
                     <td>{{ job.resumes | length }}
                         <a href="{{ url_for('predictor.view_resumes', job_id=job.id) }}" class="btn btn-primary">View Resumes</a>
                     </td>
                     <td>
                         <!-- Button to open modal for editing job profile -->
-                        <button type="button" class="btn btn-warning btn-sm" onclick="openEditModal('{{ job.id }}', '{{ job.job_title }}', '{{ job.job_description }}')">Edit</button>
+                        <button type="button" class="btn btn-warning btn-sm edit-btn" data-job-id="{{ job.id }}" data-job-title="{{ job.job_title|e }}" data-job-description="{{ job.job_description|e }}">Edit</button>
+
                         
                         <!-- Delete form -->
                         <form action="{{ url_for('dashboard.delete_job_profile', job_id=job.id) }}" method="POST" class="d-inline">
@@ -126,17 +137,70 @@
     <script>
         // Function to open the edit modal and pre-fill data
         function openEditModal(jobId, jobTitle, jobDescription) {
-            // Set the data into the modal fields
-            document.getElementById('editJobTitle').value = jobTitle;
-            document.getElementById('editJobDescription').value = jobDescription;
-            
-            // Set the form's action URL to edit the job profile
-            var editForm = document.getElementById('editJobForm');
-            editForm.action = `/edit_job_profile/${jobId}`;
-
-            // Show the modal
-            $('#editJobModal').modal('show');
+            try {
+                // Ensure job description is properly formatted
+                let decodedDescription = jobDescription.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    
+                // Set the data into the modal fields
+                document.getElementById('editJobTitle').value = jobTitle;
+                document.getElementById('editJobDescription').value = decodedDescription;
+    
+                // Set the form's action URL to edit the job profile
+                var editForm = document.getElementById('editJobForm');
+                editForm.action = `/edit_job_profile/${jobId}`;
+    
+                // Show the modal
+                $('#editJobModal').modal('show');
+            } catch (error) {
+                console.error("Error opening edit modal:", error);
+            }
         }
+    
+        // Clear modal data on close
+        $('#editJobModal').on('hidden.bs.modal', function () {
+            // Remove lingering modal state
+            $(this).removeClass('show').css('display', 'none').attr('aria-hidden', true);
+    
+            // Clear modal fields
+            $('#editJobTitle').val('');
+            $('#editJobDescription').val('');
+            $('#editJobForm').attr('action', '');
+        });
+    
+        // Toggle "See More" and "See Less" for job descriptions
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".toggle-btn").forEach(btn => {
+                btn.addEventListener("click", function (event) {
+                    event.preventDefault();
+    
+                    let jobId = this.getAttribute("data-job-id");
+                    let container = document.getElementById(`container-${jobId}`);
+                    let shortText = container.querySelector(".short-text");
+                    let longText = container.querySelector(".long-text");
+    
+                    if (longText.classList.contains("d-none")) {
+                        shortText.classList.add("d-none"); // Hide short text
+                        longText.classList.remove("d-none"); // Show full text
+                        this.textContent = "See Less";
+                    } else {
+                        shortText.classList.remove("d-none"); // Show short text
+                        longText.classList.add("d-none"); // Hide full text
+                        this.textContent = "See More";
+                    }
+                });
+            });
+    
+            // Add event listener for edit buttons dynamically
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const jobId = this.getAttribute("data-job-id");
+                    const jobTitle = this.getAttribute("data-job-title");
+                    const jobDescription = this.getAttribute("data-job-description");
+    
+                    openEditModal(jobId, jobTitle, jobDescription);
+                });
+            });
+        });
     </script>
 
 </body>

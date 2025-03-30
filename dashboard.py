@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from werkzeug.utils import secure_filename
 from predictor import process_and_score
 from sqlalchemy.sql import func
 import os
 from models import User, JobProfile, db, ResumeResults, JobApplication
+from sqlalchemy import delete
 dashboard = Blueprint('dashboard', __name__)
 
 
@@ -273,13 +274,20 @@ def edit_job_profile(job_id):
             return redirect(url_for('dashboard.recruiter_dashboard'))
     return redirect(url_for('login'))
 
-#Deleting the Job Profile
+
 @dashboard.route('/delete_job_profile/<int:job_id>', methods=['POST'])
 def delete_job_profile(job_id):
     job_profile = JobProfile.query.get_or_404(job_id)
+
     if 'user_id' in session and job_profile.recruiter_id == session['user_id']:
+        # Delete related job applications properly
+        db.session.execute(delete(JobApplication).where(JobApplication.job_profile_id == job_id))
+
+        # Now delete the job profile
         db.session.delete(job_profile)
         db.session.commit()
-        flash('Job profile deleted.', 'success')
+
+        flash('Job profile and associated applications deleted.', 'success')
         return redirect(url_for('dashboard.recruiter_dashboard'))
+
     return redirect(url_for('login'))
