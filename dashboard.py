@@ -14,38 +14,51 @@ UPLOAD_FOLDER = './uploads'
 @dashboard.route('/admin_dashboard')
 def admin_dashboard():
     if 'user_id' in session and session.get('user_role') == 'admin':
-        job_recruiters = User.query.filter_by(role="job_recruiter").all()
-        job_seekers = User.query.filter_by(role="job_seeker").all()
-
         ist = pytz.timezone('Asia/Kolkata')
         current_time = datetime.now(ist)
+
+        job_recruiters = User.query.filter_by(role="job_recruiter").all()
+        job_seekers = User.query.filter_by(role="job_seeker").all()
+        total_jobs_posted = JobProfile.query.count()
+        total_resumes_uploaded = ResumeResults.query.count()
+        total_users_suspended = User.query.filter_by(is_suspended=True).count()
+
         users = job_seekers + job_recruiters
         for user in users:
             if user.suspend_until:
-                # Ensure it's treated as UTC first, then convert to IST
                 if user.suspend_until.tzinfo is None:
                     utc_time = pytz.utc.localize(user.suspend_until)
                 else:
                     utc_time = user.suspend_until.astimezone(pytz.utc)
-
                 suspend_until_ist = utc_time.astimezone(ist)
 
-                # Auto-unsuspend logic
                 if suspend_until_ist < current_time:
                     user.is_suspended = False
                     user.suspend_until = None
                     user.suspend_reason = None
                     db.session.commit()
                 else:
-                    user.suspend_until = suspend_until_ist  # keep it in IST for template display
+                    user.suspend_until = suspend_until_ist
 
+        # Suspended Users Overview
+        total_users = len(users)
+        suspended = len([u for u in users if u.is_suspended])
+        suspended_counts = {
+            "Active": total_users - suspended,
+            "Suspended": suspended
+        }
 
+        # Most Common Suspension Reasons
+        reason_counts = db.session.query(User.suspend_reason, func.count(User.id))\
+            .filter(User.is_suspended == True, User.suspend_reason != None)\
+            .group_by(User.suspend_reason).all()
 
-        # Pie Chart Data (User Bifurcation)
+        suspension_reasons = {reason: count for reason, count in reason_counts}
+
+        # Existing logic
         job_seekers_count = len(job_seekers)
         job_recruiters_count = len(job_recruiters)
 
-        # Bar Graph Data (Top 5 Companies with Most Job Posts)
         company_job_counts = db.session.query(User.username, func.count(JobProfile.id))\
             .join(JobProfile, User.id == JobProfile.recruiter_id)\
             .filter(User.role == "job_recruiter")\
@@ -56,20 +69,19 @@ def admin_dashboard():
         companies = [username[0] for username in company_job_counts]
         job_counts = [username[1] for username in company_job_counts]
 
-        # Top 5 Active Job Seekers (Most Applications Submitted)
         top_applicants = db.session.query(User.username, func.count(JobApplication.id))\
-        .join(JobApplication, User.id == JobApplication.user_id)\
-        .filter(User.role == "job_seeker")\
-        .group_by(User.username)\
-        .order_by(func.count(JobApplication.id).desc())\
-        .limit(5).all()
+            .join(JobApplication, User.id == JobApplication.user_id)\
+            .filter(User.role == "job_seeker")\
+            .group_by(User.username)\
+            .order_by(func.count(JobApplication.id).desc())\
+            .limit(5).all()
 
         applicant_names = [applicant[0] for applicant in top_applicants]
         application_counts = [applicant[1] for applicant in top_applicants]
 
         return render_template(
-            'admin_dashboard.html', 
-            job_recruiters=job_recruiters, 
+            'admin_dashboard.html',
+            job_recruiters=job_recruiters,
             job_seekers=job_seekers,
             job_recruiters_count=job_recruiters_count,
             job_seekers_count=job_seekers_count,
@@ -78,11 +90,17 @@ def admin_dashboard():
             applicant_names=applicant_names,
             application_counts=application_counts,
             current_time=current_time,
-            users=users
+            users=users,
+            total_jobs_posted=total_jobs_posted,
+            total_resumes_uploaded=total_resumes_uploaded,
+            total_users_suspended=total_users_suspended,
+            suspended_counts=suspended_counts,
+            suspension_reasons=suspension_reasons
         )
     else:
         flash('You do not have permission to access this page.', 'warning')
         return redirect(url_for('login'))
+
 
 @dashboard.route('/suspend_user', methods=['POST'])
 def suspend_user():
@@ -128,6 +146,15 @@ def unsuspend_user():
 
     return redirect(url_for('dashboard.admin_dashboard'))
 
+
+@dashboard.route('/admin_dashboard/recruiters')
+def recruiters():
+    if 'user_id' in session and session.get('user_role') == 'admin':
+        recruiters = User.query.filter_by(role='job_recruiter').all()
+        return render_template('recruiters.html', recruiters=recruiters)
+    else:
+        flash('You do not have permission to access this page.', 'warning')
+        return redirect(url_for('login'))
 
 
 @dashboard.route('/job_profiles/<string:username>')
@@ -198,12 +225,11 @@ def delete_application(resume_id):
     return redirect(url_for('dashboard.job_seeker_dashboard'))
 
 
-
 @dashboard.route('/jobs', methods=['GET'])
 def jobs():
     if 'user_id' in session and session.get('user_role') == 'job_seeker':
-        user_id = session['user_id']  # Get the logged-in user's ID
-        search_query = request.args.get('q', '')  # Get the search query from the URL parameters
+        user_id = session['user_id']
+        search_query = request.args.get('q', '')
         
         # Query to get all job profiles excluding jobs currently applied for by the user
         query = db.session.query(
@@ -251,7 +277,7 @@ def apply(job_id):
             # Save resume details to the database with consistent path
             new_resume = ResumeResults(
                 resume_name=filename,
-                resume_path=file_path,  # Use file_path as in the predict route
+                resume_path=file_path,
                 score=score,
                 job_profile_id=job.id,
                 user_id=session['user_id']
@@ -283,8 +309,8 @@ def recruiter_dashboard():
     else:
         flash('Please log in as a Job Recruiter to access the dashboard.', 'warning')
         return redirect(url_for('login'))
-    
-#Adding a Job Profile to the Recruiter's Dashboard
+
+
 @dashboard.route('/add_job_profile', methods=['POST'])
 def add_job_profile():
     if 'user_id' in session and session.get('user_role') == 'job_recruiter':
@@ -302,7 +328,7 @@ def add_job_profile():
         return redirect(url_for('dashboard.recruiter_dashboard'))
     return redirect(url_for('login'))
 
-#Editing The Job Profile
+
 @dashboard.route('/edit_job_profile/<int:job_id>', methods=['GET', 'POST'])
 def edit_job_profile(job_id):
     job_profile = JobProfile.query.get_or_404(job_id)
@@ -321,10 +347,7 @@ def delete_job_profile(job_id):
     job_profile = JobProfile.query.get_or_404(job_id)
 
     if 'user_id' in session and job_profile.recruiter_id == session['user_id']:
-        # Delete related job applications properly
         db.session.execute(delete(JobApplication).where(JobApplication.job_profile_id == job_id))
-
-        # Now delete the job profile
         db.session.delete(job_profile)
         db.session.commit()
 

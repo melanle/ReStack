@@ -1,13 +1,11 @@
-from flask import Flask, render_template, flash, url_for, redirect, session, request, jsonify
-from models import db, User, JobProfile
+from flask import Flask, render_template, flash, url_for, redirect, session
+from models import db, User
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from forms import LoginForm
 from signup import signup 
 from dashboard import dashboard
 from predictor import predictor
-import os
-
 app = Flask (__name__)
 app.config['SECRET_KEY'] = 'FDKJF224EWK'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:pass%40123@localhost:5432/flask_auth_db'
@@ -67,18 +65,6 @@ def about():
 
 #Main admin, job seeker and job recruiter dashboards to see the data
 app.register_blueprint(dashboard)
-
-
-# @app.route('/view_resumes/<int:job_id>', methods=['GET'])
-# def view_resumes(job_id):
-#     # Fetch the job profile from the database
-#     job = JobProfile.query.get_or_404(job_id)  # Retrieve the job profile object
-    
-#     # Fetch resumes for the job (you can add logic to get resumes here)
-#     resumes = []  # Replace this with the actual logic to fetch resumes
-    
-#     # Pass the job and resumes to the template
-#     return render_template('view_resumes.html', job=job, resumes=resumes)
 
 app.register_blueprint(predictor)
 

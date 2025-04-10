@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
-#Users Model
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -24,7 +23,6 @@ class User(db.Model):
     job_profiles = db.relationship('JobProfile', backref='recruiter', lazy=True)
 
 
-#Job Profile Model
 class JobProfile(db.Model):
     __tablename__ = 'job_profiles'
     id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +36,6 @@ class JobProfile(db.Model):
     #Relationship with ResumeResults
     resumes = db.relationship('ResumeResults', back_populates='job_profile', cascade="all, delete-orphan")
 
-#Resume Results Model
 class ResumeResults(db.Model):
     __tablename__ = 'resume_results'
     
@@ -58,7 +55,6 @@ class ResumeResults(db.Model):
     def __repr__(self):
         return f"<ResumeResults {self.resume_name}, {self.score}>"
 
-# Job Applications Model
 class JobApplication(db.Model):
     __tablename__ = 'job_applications'
     id = db.Column(db.Integer, primary_key=True)

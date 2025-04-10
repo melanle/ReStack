@@ -7,140 +7,122 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f0f2f5;
+            background-color: #f7fdfd;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .container {
-            background-color: #ffffff;
-            padding: 40px;
+
+        .card-custom {
+            background: #ffffff;
             border-radius: 16px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            margin: 50px auto;
-        }
-        .left-form {
-            max-width: 600px;
-        }
-        h2 {
-            margin-bottom: 30px;
-            font-size: 2rem;
-            color: #343a40;
-        }
-        .form-group label {
-            font-weight: 600;
-            color: #495057;
-        }
-        textarea, input[type="file"] {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            margin-top: 5px;
-            font-size: 1rem;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background-color: #007bff;
+            box-shadow: 0 4px 20px rgba(0, 128, 128, 0.1);
+            padding: 30px;
             border: none;
-            color: white;
-            font-size: 1.2rem;
-            border-radius: 8px;
-            transition: background-color 0.3s ease;
         }
-        button:hover {
-            background-color: #0056b3;
+
+        .btn-teal {
+            background-color: #20B2AA;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 20px;
+            font-weight: 500;
+            transition: background 0.3s ease;
         }
+
+        .btn-teal:hover {
+            background-color: #008080;
+        }
+
+        .form-control, .form-control-file {
+            border: 1px solid #20B2AA;
+            border-radius: 6px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #006D66;
+        }
+
         .error-message {
-            color: #dc3545;
-            font-weight: bold;
-            margin-top: 15px;
-            padding: 10px;
-            background-color: #f8d7da;
+            background-color: #F8BBD0;
+            color: #6a1b1b;
+            padding: 12px 15px;
             border-radius: 8px;
-        }
-        .score-result {
-            margin-top: 20px;
-            background-color: #d4edda;
-            padding: 20px;
-            border-radius: 8px;
-            color: #155724;
-            font-size: 1.2rem;
-            text-align: center;
-            border: 1px solid #c3e6cb;
-        }
-        .recommendations {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #fff3cd;
-            border-radius: 8px;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            font-family: 'Georgia', serif;
-            font-size: 1rem;
-        }
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            margin-top: 15px;
             font-weight: 500;
         }
-        .checkbox-label input {
-            margin-right: 10px;
+
+        .score-result {
+            background-color: #B2DFDB;
+            color: #004d40;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .recommendations p {
+            background-color: #E0F7FA;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .header-title {
+            color: #008080;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 25px;
         }
     </style>
 </head>
 <body>
     {% include 'navbar.html' %}
 
-    <div class="container">
-        <div class="row justify-content-start">
+    <div class="container my-5">
+        <div class="row justify-content-center">
             <div class="col-md-8">
-
-                {% if not score and not error and not recommendations %}
-                    <!-- Form section -->
-                    <div class="left-form">
-                        <h2>Test your resume</h2>
+                <div class="card-custom">
+                    {% if not score and not error and not recommendations %}
+                        <!-- Form section -->
+                        <h2 class="header-title text-center">Test Your Resume</h2>
                         <form method="POST" action="/predict" enctype="multipart/form-data">
                             <div class="form-group">
-                                <label for="resume">Upload Your Resume:</label>
+                                <label for="resume" class="form-label">Upload Your Resume</label>
                                 <input type="file" name="resume" id="resume" required class="form-control-file">
                             </div>
                             <div class="form-group">
-                                <label for="job_description">Job Description:</label>
-                                <textarea name="job_description" id="job_description" required class="form-control"></textarea>
+                                <label for="job_description" class="form-label">Job Description</label>
+                                <textarea name="job_description" id="job_description" rows="4" required class="form-control"></textarea>
                             </div>
-                            <div class="form-group checkbox-label">
-                                <input type="checkbox" name="get_recommendations" id="get_recommendations" value="true">
-                                <label for="get_recommendations">Get Recommendations</label>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" name="get_recommendations" id="get_recommendations" value="true">
+                                <label for="get_recommendations" class="form-label">Get Recommendations</label>
                             </div>
-                            <div class="form-group">
-                                <button type="submit">Submit</button>
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-teal w-100">Submit</button>
                             </div>
                         </form>
-                    </div>
-
-                {% else %}
-                    <!-- Results section -->
-                    {% if error %}
-                        <div class="error-message">{{ error }}</div>
-                    {% endif %}
-                    {% if score %}
-                        <div class="score-result">Your Resume Score: {{ score }}</div>
-                    {% endif %}
-                    {% if recommendations %}
-                        <div class="recommendations">
-                            <h5>Recommendations:</h5>
-                            <p>{{ recommendations|safe }}</p>
+                    {% else %}
+                        <!-- Results section -->
+                        {% if error %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endif %}
+                        {% if score %}
+                            <div class="score-result mb-3">
+                                <strong>Your Resume Score:</strong> {{ score }}
+                            </div>
+                        {% endif %}
+                        {% if recommendations %}
+                            <div class="recommendations p-3 rounded" style="background-color: #E0F7FA;">
+                                <h5 style="color: #008080;">Recommendations:</h5>
+                                {{ recommendations|safe }}
+                            </div>                        
+                        {% endif %}
+                        <div class="form-group mt-4 text-center">
+                            <a href="/predict" class="btn btn-teal w-100">Try Another Resume</a>
                         </div>
                     {% endif %}
-                    <div class="form-group mt-4">
-                        <a href="/predict" class="btn btn-primary btn-block">Try Another Resume</a>
-                    </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>

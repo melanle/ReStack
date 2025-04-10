@@ -27,7 +27,7 @@ bcrypt = Bcrypt(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
-app.register_blueprint(signup)  # Register the signup blueprint
+app.register_blueprint(signup)
 
 # Function to get user role from session
 @app.context_processor
@@ -105,7 +105,6 @@ def privacyPolicy():
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if 'user_id' in session:
-        # Fetch the logged-in user from the database
         user = User.query.get(session['user_id'])
         if not user:
             flash("User not found.", "danger")
@@ -182,7 +181,7 @@ def settings():
     return redirect(url_for('login'))
 
 
-# Secret key for token generation
+# Secret key for token generation for reset pass
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 @app.route('/resetpassword', methods=['GET', 'POST'])

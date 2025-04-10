@@ -9,34 +9,37 @@
 </head>
 <body>
     {% include 'navbar.html' %}
-
     <div class="container mt-4">
-        <h1 align="left">Welcome, {{ session['username'] }}</h1>
+        <h4 class="mb-3">Welcome {{ session['username'] }}</h4>
         <div class="row text-center">
-            <div class="col-md-4 mb-4">
-                <div class="card text-white bg-primary shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Users</h5>
-                        <p class="card-text display-4">{{ job_seekers_count + job_recruiters_count }}</p>
+            <div class="container mt-4">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="card text-dark shadow" style="background-color: #bee5e6; border: none;">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Users</h5>
+                                <p class="card-text display-4">{{ job_seekers_count + job_recruiters_count }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card text-dark shadow" style="background-color: #C8E6C9; border: none;">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Seekers</h5>
+                                <p class="card-text display-4">{{ job_seekers_count }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card text-dark shadow" style="background-color: #BBDEFB; border: none;">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Recruiters</h5>
+                                <p class="card-text display-4">{{ job_recruiters_count }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card text-white bg-success shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">Job Seekers</h5>
-                        <p class="card-text display-4">{{ job_seekers_count }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card text-white bg-info shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">Job Recruiters</h5>
-                        <p class="card-text display-4">{{ job_recruiters_count }}</p>
-                    </div>
-                </div>
-            </div>
+            </div>            
         </div>
 
         <div class="row mb-5">
@@ -120,6 +123,7 @@
                             Suspend
                             </button>
                         {% endif %}
+                        <a href="{{ url_for('dashboard.view_job_profile', username=user.username) }}" class="btn btn-sm btn-secondary" target="_blank">View Job Profiles</a>
                     </td>
                   </tr>
                   {% endfor %}
@@ -131,16 +135,37 @@
             </div>
           </div>
 
-        <div class="row mt-4">
+          <div class="bg-white rounded-2xl shadow p-4 md:col-span-2 row mt-4">
             <div class="col-md-6">
-                <h1>Checkout your users!</h1>
+                <h2>Top 5 Companies with Most Job Posts</h2>
+                <table class="table-auto w-full text-lg border-collapse border border-gray-300" style="width: 100%; height: 80%;">
+                    <tbody>
+                        <tr>
+                            <td class="px-4 py-2 border border-gray-300">👥 <strong>Total users:</strong></td>
+                            <td class="px-4 py-2 border border-gray-300">{{ job_seekers_count + job_recruiters_count }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-2 border border-gray-300">💼 <strong>Jobs Posted:</strong></td>
+                            <td class="px-4 py-2 border border-gray-300">{{ total_jobs_posted }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-2 border border-gray-300">📄 <strong>Resumes Uploaded:</strong></td>
+                            <td class="px-4 py-2 border border-gray-300">{{ total_resumes_uploaded }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-2 border border-gray-300">📉 <strong>Users Suspended:</strong></td>
+                            <td class="px-4 py-2 border border-gray-300">{{ total_users_suspended }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="col-md-6">
+                <h2>User Bifurcation</h2>
                 <canvas id="userBifurcationChart" style="width: 500px; height: 500px;"></canvas>
             </div>
         </div>
-
-        <div class="row mt-4">
+        
+        <div class="bg-white rounded-2xl shadow p-4 md:col-span-2 row mt-4">
             <div class="col-md-6">
                 <h2>Top 5 Companies with Most Job Posts</h2>
                 <canvas id="topCompaniesChart"></canvas>
@@ -150,6 +175,20 @@
                 <canvas id="topApplicantsChart"></canvas>
             </div>
         </div>
+            <!-- 1. Activity Over Time -->
+            <div class="bg-white rounded-2xl shadow p-4 md:col-span-2 row mt-4">
+                <!-- 2. Suspended Users Overview -->
+                <div class="col-md-6">
+                    <h2 class="text-lg font-semibold mb-2">Suspended Users Overview</h2>
+                    <canvas id="suspendedChart"></canvas>
+                </div>
+                <!-- 3. Most Common Suspension Reasons -->
+                <div class="col-md-6">
+                    <h2 class="text-lg font-semibold mb-2">Top Suspension Reasons</h2>
+                    <canvas id="reasonChart"></canvas>
+                </div>
+            </div>
+          
     </div>
 
     {% include 'footer.html' %}
@@ -165,6 +204,16 @@
     <script type="application/json" id="applicantsData">
         {{ {"labels": applicant_names, "counts": application_counts} | tojson | safe }}
     </script>
+
+    <script type="application/json" id="suspendedData">
+        {{ suspended_counts | tojson | safe }}
+    </script>
+
+    <script type="application/json" id="reasonsData">
+        {{ suspension_reasons | tojson | safe }}
+    </script>
+    
+
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -235,8 +284,7 @@
           });
         });
       </script>      
-
-    <script>
+      <script>
         document.addEventListener("DOMContentLoaded", function () {
             var userData = JSON.parse(document.getElementById('userData').textContent);
             var ctx1 = document.getElementById('userBifurcationChart').getContext('2d');
@@ -246,11 +294,23 @@
                     labels: ['Job Seekers', 'Job Recruiters'],
                     datasets: [{
                         data: [userData.seekers, userData.recruiters],
-                        backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
+                        backgroundColor: ['#7cd4d2', '#008080'],
+                        borderColor: '#FFFFFF', // White borders
+                        borderWidth: 2
                     }]
                 },
                 options: {
-                    responsive: false
+                    responsive: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
                 }
             });
 
@@ -263,12 +323,26 @@
                     datasets: [{
                         label: 'Job Posts',
                         data: companiesData.counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                        backgroundColor: ['#008080', '#5F9EA0', '#40E0D0'], // Gradient effect
+                        borderColor: '#FFFFFF',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    scales: { y: { beginAtZero: true } }
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
                 }
             });
 
@@ -281,16 +355,83 @@
                     datasets: [{
                         label: 'Applications Submitted',
                         data: applicantsData.counts,
-                        backgroundColor: 'rgba(255, 159, 64, 0.6)'
+                        backgroundColor: '#7cd4d2',
+                        borderColor: '#5F9EA0',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    scales: { y: { beginAtZero: true } }
+                    scales: { y: { beginAtZero: true } },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Suspended Chart
+            const suspendedData = JSON.parse(document.getElementById("suspendedData").textContent);
+            new Chart(document.getElementById('suspendedChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(suspendedData),
+                    datasets: [{
+                        data: Object.values(suspendedData),
+                        backgroundColor: ['#008080', '#5F9EA0'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Common Suspension Reasons
+            const reasonsData = JSON.parse(document.getElementById("reasonsData").textContent);
+            new Chart(document.getElementById('reasonChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(reasonsData),
+                    datasets: [{
+                        label: 'Count',
+                        data: Object.values(reasonsData),
+                        backgroundColor: '#008080',
+                        borderColor: '#FFFFFF',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'x',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
                 }
             });
         });
-    </script>
+
+      </script>
+    
     <div class="modal fade" id="suspendModal" tabindex="-1" role="dialog" aria-labelledby="suspendModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <form method="POST" action="{{ url_for('dashboard.suspend_user') }}">
@@ -369,8 +510,9 @@
           });
         });
       </script>
+      
       <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-            
+
 </body>
 </html>

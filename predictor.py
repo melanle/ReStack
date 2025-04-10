@@ -6,7 +6,7 @@ import os
 import google.generativeai as genai
 from PyPDF2 import PdfReader
 from docx import Document
-from models import User, JobProfile, ResumeResults, db, JobApplication
+from models import User, JobProfile, ResumeResults, db
 
 predictor = Blueprint('predictor', __name__)
 UPLOAD_FOLDER = './uploads'
@@ -107,7 +107,7 @@ def predict():
     user = User.query.get(session['user_id'])
     if user.role != 'job_seeker':
         flash('You must be a job seeker to view this page.', 'danger')
-        return redirect(url_for('home'))  # Redirect to home or another page as per your app
+        return redirect(url_for('home'))
 
     error = None
     score = None
@@ -220,8 +220,6 @@ def update_status(resume_id):
     return jsonify({"status": "success", "message": "Status updated successfully!"})
 
 
-
-
 @predictor.route('/viewres/<int:resume_id>', methods=['GET'])
 def viewres(resume_id):
     # Fetch the resume from the database using the resume_id
@@ -253,7 +251,6 @@ def delete_resume(resume_id):
         flash(f"Error deleting resume: {str(e)}", "danger")
 
     return redirect(url_for('predictor.view_resumes', job_id=resume.job_profile_id))
-
 
 
 @predictor.route('/uploadres', methods=['POST'])

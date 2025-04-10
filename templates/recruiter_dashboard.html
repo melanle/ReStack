@@ -13,12 +13,10 @@
         <h1>Welcome, {{ session['username'] }}!</h1>
         <h2>Your Dashboard</h2>
 
-        <!-- Button to open modal for adding a new job profile -->
         <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#addJobModal">
             Add Job Profile
         </button>
 
-        <!-- Table displaying job profiles -->
         <table class="table table-bordered">
             <thead class="thead-dark">
                 <tr>
@@ -47,11 +45,8 @@
                         <a href="{{ url_for('predictor.view_resumes', job_id=job.id) }}" class="btn btn-primary">View Resumes</a>
                     </td>
                     <td>
-                        <!-- Button to open modal for editing job profile -->
                         <button type="button" class="btn btn-warning btn-sm edit-btn" data-job-id="{{ job.id }}" data-job-title="{{ job.job_title|e }}" data-job-description="{{ job.job_description|e }}">Edit</button>
 
-                        
-                        <!-- Delete form -->
                         <form action="{{ url_for('dashboard.delete_job_profile', job_id=job.id) }}" method="POST" class="d-inline">
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this job profile?');">
                                 Delete
@@ -130,7 +125,6 @@
         </div>
     </div>
 
-    <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 

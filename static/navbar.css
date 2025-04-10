@@ -46,8 +46,8 @@ body {
 }
 
 .nav-links a:hover {
-    color: #e0f7fa; /* Light cyan */
-    transform: translateY(-3px); /* Subtle lift on hover */
+    color: #e0f7fa;
+    transform: translateY(-3px);
 }
 
 .nav-links i {
