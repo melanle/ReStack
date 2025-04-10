@@ -15,6 +15,10 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     security_question = db.Column(db.String(255), nullable=True) 
     security_answer = db.Column(db.String(255), nullable=True)
+    last_login = db.Column(db.DateTime, nullable=True)
+    is_suspended = db.Column(db.Boolean, default=False)
+    suspend_until = db.Column(db.DateTime, nullable=True)
+    suspend_reason = db.Column(db.String(255), nullable=True)
 
     #Creating a relationship to JobProfile (for recruiters)
     job_profiles = db.relationship('JobProfile', backref='recruiter', lazy=True)

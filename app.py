@@ -7,6 +7,8 @@ from signup import signup
 from dashboard import dashboard
 from predictor import predictor
 import smtplib 
+from datetime import datetime
+import pytz
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer
@@ -30,11 +32,22 @@ app.register_blueprint(signup)  # Register the signup blueprint
 # Function to get user role from session
 @app.context_processor
 def get_user_role():
-    return {'user_role': session.get('user_role')}  # Returns 'guest' if no role is set
+    return {'user_role': session.get('user_role')}
 
 @app.route('/')
 def home():
     return render_template('home.html')
+
+def utc_to_ist(dt):
+    if not dt:
+        return "N/A"
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=pytz.utc)
+    ist = pytz.timezone("Asia/Kolkata")
+    return dt.astimezone(ist).strftime('%Y-%m-%d %I:%M %p')
+
+
+app.jinja_env.filters['utc_to_ist'] = utc_to_ist
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -42,17 +55,29 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            ist = pytz.timezone('Asia/Kolkata')
+            current_ist_time = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(ist)
+
+            if user.suspend_until:
+                suspend_until_ist = user.suspend_until.replace(tzinfo=pytz.utc).astimezone(ist)
+                if suspend_until_ist > current_ist_time:
+                    suspend_reason = user.suspend_reason
+                    flash(f'Your account has been suspended until {suspend_until_ist.strftime("%Y-%m-%d %I:%M %p")} IST for {suspend_reason}.', 'danger')
+                    return render_template('login.html', form=form)
+                
             session['user_id'] = user.id
             session['username'] = user.username
             session['user_role'] = user.role
 
-            # Check user role and redirect accordingly
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+
             if user.role == 'job_seeker':   
-                return redirect(url_for('dashboard.job_seeker_dashboard'))  # Update to your job seeker dashboard route
+                return redirect(url_for('dashboard.job_seeker_dashboard'))
             elif user.role == 'job_recruiter':
-                return redirect(url_for('dashboard.recruiter_dashboard'))  # Update to your recruiter dashboard route
-            elif user.is_admin:  # Assuming you have an is_admin attribute in your User model
-                return redirect(url_for('dashboard.admin_dashboard'))  # Update to your admin dashboard route
+                return redirect(url_for('dashboard.recruiter_dashboard'))
+            elif user.is_admin:
+                return redirect(url_for('dashboard.admin_dashboard'))
 
             flash('Login Failed. Invalid role.', 'danger')
         else:
@@ -142,7 +167,7 @@ def settings():
                 # Update user details
                 user.username = name
                 user.email = email
-                user.phone = phone  # Assuming you added a phone field in the User model
+                user.phone = phone
 
                 # Commit changes to the database
                 db.session.commit()
@@ -155,8 +180,6 @@ def settings():
 
     flash("You must be logged in to access this page.", "danger")
     return redirect(url_for('login'))
-
-
 
 
 # Secret key for token generation

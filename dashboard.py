@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+from datetime import datetime, timedelta
+import pytz
 from werkzeug.utils import secure_filename
 from predictor import process_and_score
 from sqlalchemy.sql import func
@@ -14,6 +16,30 @@ def admin_dashboard():
     if 'user_id' in session and session.get('user_role') == 'admin':
         job_recruiters = User.query.filter_by(role="job_recruiter").all()
         job_seekers = User.query.filter_by(role="job_seeker").all()
+
+        ist = pytz.timezone('Asia/Kolkata')
+        current_time = datetime.now(ist)
+        users = job_seekers + job_recruiters
+        for user in users:
+            if user.suspend_until:
+                # Ensure it's treated as UTC first, then convert to IST
+                if user.suspend_until.tzinfo is None:
+                    utc_time = pytz.utc.localize(user.suspend_until)
+                else:
+                    utc_time = user.suspend_until.astimezone(pytz.utc)
+
+                suspend_until_ist = utc_time.astimezone(ist)
+
+                # Auto-unsuspend logic
+                if suspend_until_ist < current_time:
+                    user.is_suspended = False
+                    user.suspend_until = None
+                    user.suspend_reason = None
+                    db.session.commit()
+                else:
+                    user.suspend_until = suspend_until_ist  # keep it in IST for template display
+
+
 
         # Pie Chart Data (User Bifurcation)
         job_seekers_count = len(job_seekers)
@@ -50,11 +76,57 @@ def admin_dashboard():
             companies=companies,
             job_counts=job_counts,
             applicant_names=applicant_names,
-            application_counts=application_counts
+            application_counts=application_counts,
+            current_time=current_time,
+            users=users
         )
     else:
         flash('You do not have permission to access this page.', 'warning')
         return redirect(url_for('login'))
+
+@dashboard.route('/suspend_user', methods=['POST'])
+def suspend_user():
+    user_id = request.form['user_id']
+    role = request.form['role']
+    days = int(request.form['suspend_days'])
+    hours = int(request.form['suspend_hours'])
+    minutes = int(request.form['suspend_minutes'])
+    reason = request.form.get('reason')
+    custom_reason = request.form.get('custom_reason')
+    
+    # Convert to UTC to store
+    suspend_until_utc = datetime.utcnow() + timedelta(days=days, hours=hours, minutes=minutes)
+
+    full_reason = custom_reason if reason == "Other" else reason
+
+    # Get user by role
+    user = User.query.get(user_id)
+    if user and user.role == role:
+        user.is_suspended = True
+        user.suspend_until = suspend_until_utc
+        user.suspend_reason = full_reason
+        db.session.commit()
+        flash("User suspended successfully", "success")
+
+    return redirect(url_for("dashboard.admin_dashboard"))
+
+
+@dashboard.route('/unsuspend_user', methods=['POST'])
+def unsuspend_user():
+    user_id = request.form.get('user_id')
+    if user_id:
+        user = User.query.get(user_id)
+        if user:
+            user.is_suspended = False
+            user.suspend_until = datetime.utcnow()  # or None
+            db.session.commit()
+            flash(f"{user.username} has been unsuspended.", "success")
+        else:
+            flash("User not found.", "danger")
+    else:
+        flash("Invalid request.", "danger")
+
+    return redirect(url_for('dashboard.admin_dashboard'))
 
 
 
@@ -125,12 +197,6 @@ def delete_application(resume_id):
 
     return redirect(url_for('dashboard.job_seeker_dashboard'))
 
-    #     return jsonify({"status": "success", "message": "Resume deleted successfully!"})
-    # except Exception as e:
-    #     return jsonify({"status": "error", "message": f"Error deleting resume: {str(e)}"}), 500
-
-
-
 
 
 @dashboard.route('/jobs', methods=['GET'])
@@ -165,33 +231,10 @@ def jobs():
         return redirect(url_for('login'))
 
 
-
-# @dashboard.route('/jobs', methods=['GET', 'POST'])
-# def jobs():
-#     search_query = request.args.get('q', '')  # Get the search query from the URL parameters
-#     query = db.session.query(
-#         JobProfile.id,
-#         JobProfile.job_title,
-#         JobProfile.job_description,
-#         JobProfile.created_at,
-#         User.username.label("recruiter_name")
-#     ).join(User, JobProfile.recruiter_id == User.id)
-    
-#     # Filter the job profiles if a search query is provided
-#     if search_query:
-#         query = query.filter(
-#             JobProfile.job_title.ilike(f"%{search_query}%") | 
-#             JobProfile.job_description.ilike(f"%{search_query}%")
-#         )
-    
-#     job_profiles = query.all()
-#     return render_template('jobs.html', jobs=job_profiles, search_query=search_query)
-
-
 @dashboard.route('/apply/<int:job_id>', methods=['GET', 'POST'])
 def apply(job_id):
     job = db.session.query(
-        JobProfile.id,  # Include the job ID
+        JobProfile.id,
         JobProfile.job_title,
         JobProfile.job_description,
         User.username.label("recruiter_name")
@@ -211,14 +254,14 @@ def apply(job_id):
                 resume_path=file_path,  # Use file_path as in the predict route
                 score=score,
                 job_profile_id=job.id,
-                user_id=session['user_id']  # Save the job seeker ID
+                user_id=session['user_id']
             )
             db.session.add(new_resume)
             
             # Create an entry in job_applications
             new_application = JobApplication(
                 job_profile_id=job.id,
-                user_id=session['user_id']  # Save the job seeker ID
+                user_id=session['user_id']
             )
             db.session.add(new_application)
             db.session.commit()
@@ -229,8 +272,6 @@ def apply(job_id):
             flash('Incorrect file format! Please upload only PDF or DOCX files.', 'danger')
 
     return render_template('apply.html', job=job)
-
-
 
     
 @dashboard.route('/recruiter_dashboard')

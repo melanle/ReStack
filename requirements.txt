@@ -9,3 +9,4 @@ google.generativeai
 PyPDF2
 markdown
 psycopg2
+pytz
