@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Recruiter Signup - ReStack</title>
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}"> -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <style>
@@ -55,20 +54,7 @@
         text-decoration: underline;
         color: #01252c;
     }
-    
-    .link {
-        display: block;
-        margin-top: 10px;
-        text-align: right;
-        color: #005f73;
-        text-decoration: none;
-    }
-    
-    .link:hover {
-        text-decoration: underline;
-        color: #01252c;
-    }
-    </style>
+</style>
 <body>
     {% include 'navbar.html' %}
     <h1 class="text-center mt-4">Welcome!</h1>
@@ -80,21 +66,49 @@
             <div class="form-group">
                 <label for="organization_name">{{ form.organization_name.label }}</label>
                 {{ form.organization_name(class="form-control") }}
+                {% if form.organization_name.errors %}
+                    <small class="text-danger">
+                        {% for error in form.organization_name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </small>
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label for="email">{{ form.email.label }}</label>
                 {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    <small class="text-danger">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </small>
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label for="password">{{ form.password.label }}</label>
                 {{ form.password(class="form-control") }}
+                {% if form.password.errors %}
+                    <small class="text-danger">
+                        {% for error in form.password.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </small>
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label for="confirm_password">{{ form.confirm_password.label }}</label>
                 {{ form.confirm_password(class="form-control") }}
+                {% if form.confirm_password.errors %}
+                    <small class="text-danger">
+                        {% for error in form.confirm_password.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </small>
+                {% endif %}
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
@@ -105,5 +119,8 @@
         </form>
     </div>
     {% include 'footer.html' %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

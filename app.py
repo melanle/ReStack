@@ -14,6 +14,7 @@ from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
@@ -102,6 +103,15 @@ def privacyPolicy():
     return render_template('privacypolicy.html')
 
 
+def is_strong_password(password):
+    if (len(password) < 8 or
+        not re.search(r'[A-Z]', password) or
+        not re.search(r'[a-z]', password) or
+        not re.search(r'[0-9]', password) or
+        not re.search(r'[!@#$%^&*(),.?":{}|<>]', password)):
+        return False
+    return True
+
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if 'user_id' in session:
@@ -134,6 +144,16 @@ def settings():
                 # Check if new passwords match
                 if new_password != confirm_password:
                     flash("New passwords do not match.", "danger")
+                    return redirect(url_for('settings', changePassword='true'))
+                
+                # Check if new passwords match
+                if new_password != confirm_password:
+                    flash("New passwords do not match.", "danger")
+                    return redirect(url_for('settings', changePassword='true'))
+
+                # Validate password strength
+                if not is_strong_password(new_password):
+                    flash("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special symbol.", "danger")
                     return redirect(url_for('settings', changePassword='true'))
 
                 # Update password (hash the new password before saving)
@@ -224,6 +244,9 @@ def resetpassword_token(token):
 
         if new_password != confirm_password:
             flash("Passwords do not match.", "danger")
+        # Check password strength
+        elif not is_strong_password(new_password):
+            flash("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special symbol.", "danger")
         else:
             user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
             db.session.commit()
@@ -255,6 +278,21 @@ def send_email(to_email, subject, body):
     except Exception as e:
         print("Error sending email:", e)
         return False
+
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+    # checking for unauthenticated access
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    # Logic to delete the current user's account
+    user = User.query.get(session['user_id'])
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        session.clear()
+        flash("Your account has been deleted successfully.", "success")
+        return redirect(url_for('login'))
+    return redirect(url_for('settings'))
 
 
 @app.route('/logout')

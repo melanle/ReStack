@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for
 from forms import RoleSelectForm, JobSeekerSignUpForm, RecruiterSignUpForm
 from models import db, User
 from flask_bcrypt import Bcrypt
@@ -25,7 +25,6 @@ def signup_job_seeker():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password, role='job_seeker')
         db.session.add(user)
         db.session.commit()
-        flash('Your account has been created as a Job Seeker!', 'success')
         return redirect(url_for('login'))
     return render_template('signup_job_seeker.html', form=form)
 
@@ -37,6 +36,5 @@ def signup_job_recruiter():
         user = User(username=form.organization_name.data, email=form.email.data, password=hashed_password, role='job_recruiter')
         db.session.add(user)
         db.session.commit()
-        flash('Your account has been created as a Job Recruiter!', 'success')
         return redirect(url_for('login'))
     return render_template('signup_job_recruiter.html', form=form)
