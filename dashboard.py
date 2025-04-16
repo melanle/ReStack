@@ -40,7 +40,6 @@ def admin_dashboard():
                 else:
                     user.suspend_until = suspend_until_ist
 
-        # Suspended Users Overview
         total_users = len(users)
         suspended = len([u for u in users if u.is_suspended])
         suspended_counts = {
@@ -48,14 +47,12 @@ def admin_dashboard():
             "Suspended": suspended
         }
 
-        # Most Common Suspension Reasons
         reason_counts = db.session.query(User.suspend_reason, func.count(User.id))\
             .filter(User.is_suspended == True, User.suspend_reason != None)\
             .group_by(User.suspend_reason).all()
 
         suspension_reasons = {reason: count for reason, count in reason_counts}
 
-        # Existing logic
         job_seekers_count = len(job_seekers)
         job_recruiters_count = len(job_recruiters)
 
@@ -112,12 +109,10 @@ def suspend_user():
     reason = request.form.get('reason')
     custom_reason = request.form.get('custom_reason')
     
-    # Convert to UTC to store
     suspend_until_utc = datetime.utcnow() + timedelta(days=days, hours=hours, minutes=minutes)
 
     full_reason = custom_reason if reason == "Other" else reason
 
-    # Get user by role
     user = User.query.get(user_id)
     if user and user.role == role:
         user.is_suspended = True
@@ -136,7 +131,7 @@ def unsuspend_user():
         user = User.query.get(user_id)
         if user:
             user.is_suspended = False
-            user.suspend_until = datetime.utcnow()  # or None
+            user.suspend_until = datetime.utcnow()
             db.session.commit()
             flash(f"{user.username} has been unsuspended.", "success")
         else:
@@ -201,14 +196,11 @@ def delete_application(resume_id):
     resume = ResumeResults.query.get_or_404(resume_id)
 
     try:
-        # Delete the file from the file system
         if os.path.exists(resume.resume_path):
             os.remove(resume.resume_path)
 
-        # Remove the record from the ResumeResults table
         db.session.delete(resume)
 
-        # Remove the associated entry in the JobApplication table
         job_application = JobApplication.query.filter_by(
             job_profile_id=resume.job_profile_id,
             user_id=session['user_id']
@@ -231,7 +223,6 @@ def jobs():
         user_id = session['user_id']
         search_query = request.args.get('q', '')
         
-        # Query to get all job profiles excluding jobs currently applied for by the user
         query = db.session.query(
             JobProfile.id,
             JobProfile.job_title,
@@ -241,9 +232,8 @@ def jobs():
         ).join(User, JobProfile.recruiter_id == User.id)\
         .outerjoin(JobApplication, (JobApplication.job_profile_id == JobProfile.id) & 
                                      (JobApplication.user_id == user_id))\
-        .filter(JobApplication.id.is_(None))  # Exclude jobs the user has applied for
+        .filter(JobApplication.id.is_(None))
 
-        # Filter the job profiles if a search query is provided
         if search_query:
             query = query.filter(
                 JobProfile.job_title.ilike(f"%{search_query}%") | 
@@ -274,7 +264,6 @@ def apply(job_id):
             resume.save(file_path)
             score = process_and_score(file_path, job.job_description)
 
-            # Save resume details to the database with consistent path
             new_resume = ResumeResults(
                 resume_name=filename,
                 resume_path=file_path,
@@ -283,8 +272,7 @@ def apply(job_id):
                 user_id=session['user_id']
             )
             db.session.add(new_resume)
-            
-            # Create an entry in job_applications
+
             new_application = JobApplication(
                 job_profile_id=job.id,
                 user_id=session['user_id']

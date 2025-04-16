@@ -12,7 +12,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #005f73; /* Professional blue */
+    background-color: #005f73;
     padding: 1rem 2rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -26,7 +26,8 @@ body {
 }
 
 .nav-logo:hover {
-    color: #005f8a; /* Slightly darker blue */
+    color: #cecece;
+    text-decoration: none;
 }
 
 .nav-links {

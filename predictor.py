@@ -32,7 +32,6 @@ model = genai.GenerativeModel(
 )
 
 
-#Extracting Text from pdf
 def extract_text_from_pdf(file_path):
     try:
         reader = PdfReader(file_path)
@@ -41,7 +40,6 @@ def extract_text_from_pdf(file_path):
         print(f"Error extracting text from PDF: {e}")
         return ""
 
-#Extracting Text from docx
 def extract_text_from_docx(file_path):
     try:
         doc = Document(file_path)
@@ -195,7 +193,6 @@ def view_resumes(job_id):
         # If neither action triggered
         return jsonify({"status": "danger", "message": "Invalid request or missing data."}), 400
 
-    # GET request
     resumes = ResumeResults.query.filter_by(job_profile_id=job_id).all()
     resumes = sorted(resumes, key=lambda r: r.score, reverse=True)
 
@@ -203,16 +200,13 @@ def view_resumes(job_id):
 
 @predictor.route('/update_status/<int:resume_id>', methods=['POST'])
 def update_status(resume_id):
-    # Validate that the user is a recruiter
     if session.get('user_role') != 'job_recruiter':
         return jsonify({"status": "error", "message": "Permission denied"}), 403
 
-    # Retrieve the new status from the AJAX request
     new_status = request.json.get('status')
     if new_status not in ['Pending', 'In Touch', 'Selected', 'Not Selected']:
         return jsonify({"status": "error", "message": "Invalid status"}), 400
 
-    # Update the resume in the database
     resume = ResumeResults.query.get_or_404(resume_id)
     resume.status = new_status
     db.session.commit()
@@ -222,14 +216,11 @@ def update_status(resume_id):
 
 @predictor.route('/viewres/<int:resume_id>', methods=['GET'])
 def viewres(resume_id):
-    # Fetch the resume from the database using the resume_id
     resume = ResumeResults.query.get_or_404(resume_id)
 
-    # Ensure the file exists
     if not os.path.exists(resume.resume_path):
         return "Resume file not found!", 404
 
-    # Serve the file in the browser (it will open in a new tab)
     return send_file(resume.resume_path, as_attachment=False)
 
 
@@ -238,11 +229,9 @@ def delete_resume(resume_id):
     resume = ResumeResults.query.get_or_404(resume_id)
 
     try:
-        # Delete the file from the file system
         if os.path.exists(resume.resume_path):
             os.remove(resume.resume_path)
 
-        # Remove the record from the database
         db.session.delete(resume)
         db.session.commit()
 

@@ -2,9 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 import re
-from models import User  # Assuming you have a User model in models.py
+from models import User
 
-# Custom validator for strong passwords
 def is_strong_password(form, field):
     password = field.data
     if (len(password) < 8 or
@@ -44,7 +43,6 @@ class JobSeekerSignUpForm(FlaskForm):
     )
     submit = SubmitField('Sign Up')
 
-    # Custom validation to check if the email is already registered
     def validate_email(self, email):
         existing_user = User.query.filter_by(email=email.data).first()
         if existing_user:
@@ -69,7 +67,6 @@ class RecruiterSignUpForm(FlaskForm):
     )
     submit = SubmitField('Sign Up')
 
-    # Custom validation to check if the email is already registered
     def validate_email(self, email):
         existing_user = User.query.filter_by(email=email.data).first()
         if existing_user:

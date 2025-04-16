@@ -120,43 +120,34 @@ def settings():
             flash("User not found.", "danger")
             return redirect(url_for('login'))
 
-        # Flag to toggle edit mode
         edit_mode = request.args.get('edit', 'false') == 'true'
 
-        # Flag to toggle password change mode
         change_password = request.args.get('changePassword', 'false') == 'true'
 
-        # Flag to toggle security question change mode
         change_security = request.args.get('securityQues', 'false') == 'true'
 
         if request.method == 'POST':
             if change_password:
-                # Handle password change
                 current_password = request.form.get('current_password')
                 new_password = request.form.get('new_password')
                 confirm_password = request.form.get('confirm_password')
 
-                # Validate current password using bcrypt's check_password_hash
                 if not bcrypt.check_password_hash(user.password, current_password):
                     flash("Current password is incorrect.", "danger")
                     return redirect(url_for('settings', changePassword='true'))
 
-                # Check if new passwords match
-                if new_password != confirm_password:
-                    flash("New passwords do not match.", "danger")
-                    return redirect(url_for('settings', changePassword='true'))
-                
-                # Check if new passwords match
                 if new_password != confirm_password:
                     flash("New passwords do not match.", "danger")
                     return redirect(url_for('settings', changePassword='true'))
 
-                # Validate password strength
+                if new_password != confirm_password:
+                    flash("New passwords do not match.", "danger")
+                    return redirect(url_for('settings', changePassword='true'))
+
                 if not is_strong_password(new_password):
                     flash("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special symbol.", "danger")
                     return redirect(url_for('settings', changePassword='true'))
 
-                # Update password (hash the new password before saving)
                 user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
                 db.session.commit()
 
@@ -164,11 +155,9 @@ def settings():
                 return redirect(url_for('settings'))
 
             elif change_security:
-                # Handle security question update
                 security_question = request.form.get('security_question')
                 security_answer = request.form.get('security_answer')
 
-                # Update security question and answer
                 user.security_question = security_question
                 user.security_answer = security_answer
 
@@ -178,30 +167,25 @@ def settings():
                 return redirect(url_for('settings'))
 
             else:
-                # Handle general settings update
                 name = request.form.get('name')
                 email = request.form.get('email')
                 phone = request.form.get('phone')
 
-                # Update user details
                 user.username = name
                 user.email = email
                 user.phone = phone
 
-                # Commit changes to the database
                 db.session.commit()
 
                 flash("Details updated successfully!", "success")
                 return redirect(url_for('settings'))
 
-        # Pass the user data and flags to the template
         return render_template('settings.html', user_info=user, edit_mode=edit_mode, changePassword=change_password, change_security=change_security)
 
     flash("You must be logged in to access this page.", "danger")
     return redirect(url_for('login'))
 
 
-# Secret key for token generation for reset pass
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 @app.route('/resetpassword', methods=['GET', 'POST'])
@@ -228,7 +212,7 @@ def resetpassword():
 @app.route('/resetpassword/<token>', methods=['GET', 'POST'])
 def resetpassword_token(token):
     try:
-        email = s.loads(token, salt='password-reset', max_age=3600)  # Token valid for 1 hour
+        email = s.loads(token, salt='password-reset', max_age=3600)
     except:
         flash("Invalid or expired token.", "danger")
         return redirect(url_for('resetpassword'))
@@ -244,7 +228,6 @@ def resetpassword_token(token):
 
         if new_password != confirm_password:
             flash("Passwords do not match.", "danger")
-        # Check password strength
         elif not is_strong_password(new_password):
             flash("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special symbol.", "danger")
         else:
@@ -281,10 +264,8 @@ def send_email(to_email, subject, body):
 
 @app.route('/delete_account', methods=['POST'])
 def delete_account():
-    # checking for unauthenticated access
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    # Logic to delete the current user's account
     user = User.query.get(session['user_id'])
     if user:
         db.session.delete(user)
